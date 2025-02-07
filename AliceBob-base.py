@@ -1,76 +1,64 @@
 import numpy as np
 
 class Bob:
-    def __init__(self, message_length=10):
-        """Créer un message binaire aléatoire de longueur spécifiée."""
-        self.message_length = message_length
-        self.message = np.random.choice([0, 1], size=message_length)
+    """Représente Bob, qui envoie des données à Alice."""
+    def __init__(self, transmission_length=50, stop_at=30):
+        self.transmission_length = transmission_length
+        self.stop_at = stop_at
+        self.sent_data = np.random.randint(0, 2, size=transmission_length)
     
-    def send_message(self, loss_prob=0.2):
-        """
-        Envoyer le message avec une probabilité de perte définie (loss_prob).
-        Les bits sont envoyés avec une probabilité (1 - loss_prob).
-        Les bits perdus sont remplacés par None.
-        """
-        received_message = []
-        for bit in self.message:
-            if np.random.rand() > loss_prob:  # Le bit est reçu avec probabilité (1 - loss_prob)
-                received_message.append(bit)
-            else:
-                received_message.append(None)  # Le bit est perdu
-        return received_message
+    def transmit(self):
+        """Transmet les données jusqu'à stop_at bits."""
+        return self.sent_data[:self.stop_at]
 
 class Alice:
-    def __init__(self, buffer_size=10):
-        """Initialiser Alice avec un buffer de taille fixe."""
+    """Représente Alice, qui reçoit des données de Bob, envoie ses propres données et estime les bits manquants."""
+    def __init__(self, buffer_size=100, transmission_length=50):
         self.buffer_size = buffer_size
-        self.buffer = []
+        self.transmission_length = transmission_length
+        self.buffer = np.zeros(transmission_length, dtype=int)
+        self.sent_data = np.random.randint(0, 2, size=transmission_length)
+        self.estimated_data = np.zeros(transmission_length, dtype=int)
+    
+    def receive(self, data):
+        """Reçoit les données envoyées par Bob et les stocke dans son tampon."""
+        received_length = min(self.transmission_length, len(data))
+        self.buffer[:received_length] = data[:received_length]
+        return received_length
+    
+    def estimate_ratio(self, received_length):
+        """Estime le ratio des bits 1 dans les données reçues."""
+        ones_received = np.sum(self.buffer[:received_length])
+        return ones_received / received_length if received_length > 0 else 0
+    
+    def estimate_missing_data(self, received_length):
+        """Estime les bits manquants après l'arrêt de Bob en utilisant le ratio estimé."""
+        estimated_ratio = self.estimate_ratio(received_length)
+        estimated_bits = np.random.choice([0, 1], size=self.transmission_length-received_length, p=[1-estimated_ratio, estimated_ratio])
+        self.estimated_data[:received_length] = self.buffer[:received_length]
+        self.estimated_data[received_length:] = estimated_bits
+    
+    def send(self):
+        """Envoie ses propres données."""
+        return self.sent_data
 
-    def receive_message(self, received_message):
-        """
-        Recevoir le message envoyé par Bob et stocker les bits reçus dans le buffer.
-        Les bits perdus (None) ne sont pas enregistrés.
-        """
-        self.buffer = [bit for bit in received_message if bit is not None]
+# Initialisation de Bob et Alice
+bob = Bob()
+alice = Alice()
 
-    def predict_lost_bits(self):
-        """
-        Prédire le ratio des bits 1 perdus en utilisant la formule :
-        (Nombre de 1 reçus) / (Taille du buffer)
-        """
-        if not self.buffer:  # Si aucun bit n'a été reçu
-            return 0  # Prédiction de 0
-        
-        ones_received = sum(self.buffer)  # Compter le nombre de 1 reçus
-        prediction = ones_received / self.buffer_size  # Calcul du ratio
-        
-        return prediction
+# Transmission et réception des données
+bob_transmitted_data = bob.transmit()
+received_length = alice.receive(bob_transmitted_data)
 
-    def reconstruct_message(self, received_message):
-        """
-        Reconstruire le message en remplaçant les None par une prédiction.
-        Si la prédiction > 0.5, on remplace les None par des 1, sinon par des 0.
-        """
-        prediction_ratio = self.predict_lost_bits()  # Obtenir la prédiction
-        
-        # Remplacer les None en fonction de la prédiction
-        reconstructed_message = [
-            bit if bit is not None else (1 if prediction_ratio > 0.5 else 0)
-            for bit in received_message
-        ]
-        return reconstructed_message
+# Estimation des bits manquants
+alice.estimate_missing_data(received_length)
 
-# Exécution de la simulation
-bob = Bob(message_length=10)  # Générer un message binaire aléatoire
-received_message = bob.send_message(loss_prob=0.3)  # Envoyer le message avec 30% de pertes
-
-alice = Alice(buffer_size=10)  # Initialiser Alice avec un buffer fixe
-alice.receive_message(received_message)  # Recevoir les bits envoyés
-prediction = alice.predict_lost_bits()  # Faire une prédiction des bits perdus
-reconstructed_message = alice.reconstruct_message(received_message)  # Reconstruire le message
+# Estimation du ratio
+estimated_ratio = alice.estimate_ratio(received_length)
+actual_ratio = np.sum(bob_transmitted_data) / bob.stop_at
 
 # Affichage des résultats
-print(f"Message original :      {bob.message}")
-print(f"Message reçu :          {received_message}")
-print(f"Ratio prédit des 1 perdus : {prediction:.2f}")
-print(f"Message reconstruit :   {reconstructed_message}")
+print(f"Ratio réel des bits 1 envoyés par Bob: {actual_ratio:.3f}")
+print(f"Ratio estimé par Alice: {estimated_ratio:.3f}")
+print(f"Données réelles envoyées par Bob: {bob.sent_data}")
+print(f"Données estimées par Alice: {alice.estimated_data}")

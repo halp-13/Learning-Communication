@@ -127,23 +127,29 @@ class Alice:
         """Envoie ses propres données."""
         return self.sent_data
 
-# Initialisation de Bob et Alice
-bob = Bob()
-alice = Alice()
 
-# Transmission et réception des données
-bob_transmitted_data = bob.transmit()
-received_length = alice.receive(bob_transmitted_data)
+# if main
 
-# Estimation des bits manquants (en utilisant le motif + flipping pour conserver le ratio)
-final_estimated_data = alice.estimate_missing_data(received_length, period_len=5)
+if __name__ == "__main__":
+    
 
-# Estimation du ratio
-estimated_ratio = alice.estimate_ratio(received_length)
-actual_ratio = np.sum(bob_transmitted_data) / bob.stop_at
+    # Initialisation de Bob et Alice
+    bob = Bob()
+    alice = Alice()
 
-# Affichage des résultats
-print(f"Ratio réel des bits 1 envoyés par Bob: {actual_ratio:.3f}")
-print(f"Ratio estimé par Alice: {estimated_ratio:.3f}")
-print(f"Données réelles envoyées par Bob: {bob.sent_data}")
-print(f"Données estimées par Alice: {final_estimated_data}")
+    # Transmission et réception des données
+    bob_transmitted_data = bob.transmit()
+    received_length = alice.receive(bob_transmitted_data)
+
+    # Estimation des bits manquants (en utilisant le motif + flipping pour conserver le ratio)
+    final_estimated_data = alice.estimate_missing_data(received_length, period_len=5)
+
+    # Estimation du ratio
+    estimated_ratio = alice.estimate_ratio(received_length)
+    actual_ratio = np.sum(bob_transmitted_data) / bob.stop_at
+
+    # Affichage des résultats
+    print(f"Ratio réel des bits 1 envoyés par Bob: {actual_ratio:.3f}")
+    print(f"Ratio estimé par Alice: {estimated_ratio:.3f}")
+    print(f"Données réelles envoyées par Bob: {bob.sent_data}")
+    print(f"Données estimées par Alice: {final_estimated_data}")

@@ -6,7 +6,7 @@
         <div class="col-9 h-100 p-0 ">
             <div class="card h-100 border-0 rounded-0">
                 <div class="card-header rounded-0" style="background-color: #4c4c4c;">
-                    <h4 class="card-title text-center" id="Titre" >Alice-bob</h4>
+                    <h4 class="card-title text-center" id="Titre">Alice-bob</h4>
                 </div>
                 <div class="card-body d-flex p-0">
                     <!-- <canvas ref="canvas" id="canvas" width="200" height="100"></canvas>
@@ -22,20 +22,95 @@
         </div>
         <div class="col-3 h-100 p-0 ">
             <div class="card h-100 border-0 rounded-0" style="background-color: #4c4c4c;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-center">
-                        <div class="d-flex">
-                            <select name="pets" id="pet-select" onchange="changeMode()">
-                                <option value="" >--Mode-</option>
-                                <option value="dog" onclick="clearCanvas">ALice-Bob</option>
+                <div class="card-body d-flex flex-column">
+                    <div class="card">
+                        <div class="card-header text-dark text-center">
+                            MODE
+                        </div>
+                        <div class="card-body d-flex p-0 m-0 flex-column">
+
+                            <select name="modes" id="mode-select" onchange="changeMode()">
+                                <option value="">----------</option>
+                                <option value="dog">ALice-Bob</option>
                                 <option value="cat">Alice-N-Bob</option>
                                 <option value="hamster">Alice-NNIST</option>
                                 <option value="parrot">MIS</option>
-                              </select>
-                              
+                            </select>
                         </div>
-                 
                     </div>
+
+                    <div class="card d-flex " style="flex: 2;background-color: rgba(255, 255, 255, 0.616);">
+                        <div class="card-header text-dark text-center">
+                            Options
+                        </div>
+                        <div class="card-body d-flex p-0 m-0 flex-column">
+                            <!-- table form  -->
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Option</th>
+                                        <th scope="col">Valeur</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody class="h-100"">
+                                <tr>
+                                    <th scope=" row">Logique Bob</th>
+                                    <td>
+                                        <select name="bob_alice" id="alice_bob" onchange="changeBobAlice()">
+                                            <option value="">----------</option>
+                                            <option value="dog">Random</option>
+                                            <option value="cat">Serie</option>
+                         
+                                        </select>
+                                    </td>
+
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Nombre de Bob</th>
+                                        <td>
+                                            <input type="number" name="nb_bob" id="nb_bob" value="10">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Ratio 1 Bob</th>
+                                        <td>
+                                            <input type="number" name="ratio_bob" id="ratio_bob" value="0,5">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Ratio 1 Alice</th>
+                                        <td>
+                                            <input type="number" name="ratio_alice" id="ratio_alice" value="0,2">
+                                        </td>
+                                    </tr>
+                                    <!-- <tr>
+                                    <th scope="row">2</th>
+                                    <td>Jacob</td>
+                        
+                                  </tr>
+                                  <tr>
+                                    <th scope="row">3</th>
+                                    <td>Larry</td>
+                                
+                                  </tr> -->
+                                </tbody>
+                            </table>
+
+
+                        </div>
+
+                    </div>
+
+
+                    <div class=" d-flex p-1" style="flex: 1;">
+                        <div class="d-flex bg-primary" style="flex: 1;"></div>
+                        <div class="d-flex bg-danger" style="flex: 1;"></div>
+
+
+                    </div>
+
+
 
                 </div>
 
@@ -49,188 +124,188 @@
 {% block scripts %}
 <script>
     // $(document).ready(function () {
-//     console.log("jQuery ready");
-// });
-const canevas_box = document.getElementById('canvasBox');
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
-var nodes = [];
+    //     console.log("jQuery ready");
+    // });
+    const canevas_box = document.getElementById('canvasBox');
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    var nodes = [];
 
 
-class Node {
-    constructor(x, y, r, color, name) {
-        this.x = x;
-        this.y = y;
-        this.r = r;
-        this.color = color;
-        this.name = name;
-    }
-}
-function bob_alice() {
-    nodes = [];
-
-    var center = getCenter();
-
-    var alice = new Node(center.x, center.y, 10, 'red', 'Alice');
-    var bob = new Node(center.x + 100, center.y, 10, 'blue', 'Bob');
-
-    nodes.push(alice);
-    nodes.push(bob);
-
-}
-
-// function alice_n_bob(nb_bob=10){
-//     nodes = [];
-//     var center = getCenter();
-//     var alice = new Node(center.x, center.y, 10, 'red', 'Alice');
-//     nodes.push(alice);
-//     // draw bob around alice in circle
-//     var angle = 0;
-//     var radius = 100;
-//     var step = 2 * Math.PI / nb_bob;
-//     for (var i = 0; i < nb_bob; i++) {
-//         var x = center.x + radius * Math.cos(angle);
-//         var y = center.y + radius * Math.sin(angle);
-//         var bob = new Node(x, y, 10, 'blue', 'Bob' + i);
-//         nodes.push(bob);
-//         drawLine(alice.x, alice.y, bob.x, bob.y);
-//         angle += step;
-//     }
-// }
-
-function alice_n_bob(nb_bob = 100) {
-    nodes = [];
-    var center = getCenter();
-    var alice = new Node(center.x, center.y, 10, 'red', 'Alice');
-    nodes.push(alice);
-
-    var nb_rings = Math.ceil(Math.sqrt(nb_bob)); // Détermine dynamiquement le nombre d'anneaux
-    var base_radius = 100; // Rayon du premier anneau
-    var remaining_bob = nb_bob;
-    
-    for (var ring = 1; ring <= nb_rings; ring++) {
-        var radius = base_radius * ring; // Augmente le rayon pour chaque anneau
-        var bob_in_ring = Math.ceil(remaining_bob / (nb_rings - ring + 1)); // Répartir les Bob progressivement
-        var step = (2 * Math.PI) / bob_in_ring; // Angle entre chaque Bob
-        var angle = 0;
-
-        for (var i = 0; i < bob_in_ring; i++) {
-            var x = center.x + radius * Math.cos(angle);
-            var y = center.y + radius * Math.sin(angle);
-            var bob = new Node(x, y, 10, 'blue', `Bob${ring}_${i}`);
-            nodes.push(bob);
-            drawLine(alice.x, alice.y, bob.x, bob.y);
-            angle += step;
+    class Node {
+        constructor(x, y, r, color, name) {
+            this.x = x;
+            this.y = y;
+            this.r = r;
+            this.color = color;
+            this.name = name;
         }
-
-        remaining_bob -= bob_in_ring; // Réduire le nombre de Bob restants
     }
-}
+    function bob_alice() {
+        nodes = [];
 
+        var center = getCenter();
 
-console.log(new Node(10, 20, 5, 'red', 'A'));
+        var alice = new Node(center.x, center.y, 10, 'red', 'Alice');
+        var bob = new Node(center.x + 100, center.y, 10, 'blue', 'Bob');
 
+        nodes.push(alice);
+        nodes.push(bob);
 
-
-// listerners and resize canvas
-
-function resizeCanvas() {
-    canvas.width = canevas_box.clientWidth;
-    canvas.height = canevas_box.clientHeight;
-    clearCanvas();
-
-    redraw();
-}
-
-window.addEventListener('resize', resizeCanvas);
-
-
-
-
-// draw node point
-function drawNode(x, y, r, color, name) {
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2, true);
-    ctx.fillStyle = color;
-    ctx.fill();
-    // draw name bottom
-    ctx.font = '12px Arial';
-    ctx.fillStyle = 'black';
-
-    ctx.fillText(name, x -12, y + 20);
-}
-
-function getCenter() {
-    return {
-        x: canvas.width / 2,
-        y: canvas.height / 2
     }
-}
-// draw line
-function drawLine(x1, y1, x2, y2) {
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-}
 
-// clear canvas
-function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
+    // function alice_n_bob(nb_bob=10){
+    //     nodes = [];
+    //     var center = getCenter();
+    //     var alice = new Node(center.x, center.y, 10, 'red', 'Alice');
+    //     nodes.push(alice);
+    //     // draw bob around alice in circle
+    //     var angle = 0;
+    //     var radius = 100;
+    //     var step = 2 * Math.PI / nb_bob;
+    //     for (var i = 0; i < nb_bob; i++) {
+    //         var x = center.x + radius * Math.cos(angle);
+    //         var y = center.y + radius * Math.sin(angle);
+    //         var bob = new Node(x, y, 10, 'blue', 'Bob' + i);
+    //         nodes.push(bob);
+    //         drawLine(alice.x, alice.y, bob.x, bob.y);
+    //         angle += step;
+    //     }
+    // }
 
-function redraw() {
-    clearCanvas();
+    function alice_n_bob(nb_bob = 100) {
+        nodes = [];
+        var center = getCenter();
+        var alice = new Node(center.x, center.y, 10, 'red', 'Alice');
+        nodes.push(alice);
 
-    nodes.forEach(node => {
-        drawNode(node.x, node.y, node.r, node.color, node.name);
-    });
-}
+        var nb_rings = Math.ceil(Math.sqrt(nb_bob)); // Détermine dynamiquement le nombre d'anneaux
+        var base_radius = 100; // Rayon du premier anneau
+        var remaining_bob = nb_bob;
 
-function changeMode() {
-    var e = document.getElementById("pet-select");
-    var mode = e.options[e.selectedIndex].value;
-    var title = document.getElementById('Titre');
-    console.log(mode);
-    if (mode == 'dog') {
+        for (var ring = 1; ring <= nb_rings; ring++) {
+            var radius = base_radius * ring; // Augmente le rayon pour chaque anneau
+            var bob_in_ring = Math.ceil(remaining_bob / (nb_rings - ring + 1)); // Répartir les Bob progressivement
+            var step = (2 * Math.PI) / bob_in_ring; // Angle entre chaque Bob
+            var angle = 0;
+
+            for (var i = 0; i < bob_in_ring; i++) {
+                var x = center.x + radius * Math.cos(angle);
+                var y = center.y + radius * Math.sin(angle);
+                var bob = new Node(x, y, 10, 'blue', `Bob${ring}_${i}`);
+                nodes.push(bob);
+                drawLine(alice.x, alice.y, bob.x, bob.y);
+                angle += step;
+            }
+
+            remaining_bob -= bob_in_ring; // Réduire le nombre de Bob restants
+        }
+    }
+
+
+    console.log(new Node(10, 20, 5, 'red', 'A'));
+
+
+
+    // listerners and resize canvas
+
+    function resizeCanvas() {
+        canvas.width = canevas_box.clientWidth;
+        canvas.height = canevas_box.clientHeight;
         clearCanvas();
-        bob_alice();
+
         redraw();
-        title.innerHTML = 'Alice-Bob';
     }
-    else if (mode == 'cat') {
-        clearCanvas();
-        alice_n_bob();
-        redraw();
-        title.innerHTML = 'Alice-N-Bob';
+
+    window.addEventListener('resize', resizeCanvas);
+
+
+
+
+    // draw node point
+    function drawNode(x, y, r, color, name) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2, true);
+        ctx.fillStyle = color;
+        ctx.fill();
+        // draw name bottom
+        ctx.font = '12px Arial';
+        ctx.fillStyle = 'black';
+
+        ctx.fillText(name, x - 12, y + 20);
     }
-    else if (mode == 'hamster') {
-        clearCanvas();
-        alice_n_bob(784);
-        redraw();
-        title.innerHTML = 'Alice-NNIST';
+
+    function getCenter() {
+        return {
+            x: canvas.width / 2,
+            y: canvas.height / 2
+        }
     }
-    else if (mode == 'parrot') {
+    // draw line
+    function drawLine(x1, y1, x2, y2) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    }
+
+    // clear canvas
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function redraw() {
         clearCanvas();
+
+        nodes.forEach(node => {
+            drawNode(node.x, node.y, node.r, node.color, node.name);
+        });
+    }
+
+    function changeMode() {
+        var e = document.getElementById("mode-select");
+        var mode = e.options[e.selectedIndex].value;
+        var title = document.getElementById('Titre');
+        console.log(mode);
+        if (mode == 'dog') {
+            clearCanvas();
+            bob_alice();
+            redraw();
+            title.innerHTML = 'Alice-Bob';
+        }
+        else if (mode == 'cat') {
+            clearCanvas();
+            alice_n_bob();
+            redraw();
+            title.innerHTML = 'Alice-N-Bob';
+        }
+        else if (mode == 'hamster') {
+            clearCanvas();
+            alice_n_bob(784);
+            redraw();
+            title.innerHTML = 'Alice-NNIST';
+        }
+        else if (mode == 'parrot') {
+            clearCanvas();
+            // bob_alice();
+            // redraw();
+            title.innerHTML = 'MIS';
+        }
+    }
+
+    (() => {
+
+        //     console.log("jQuery ready");
         // bob_alice();
         // redraw();
-        title.innerHTML = 'MIS';
-    }
-}
+        // JAVA  DROPDOWN
+        // Document.ready(function () {
+        //     $('.dropdown-toggle').dropdown();
+        // });
 
-(() => { 
 
-    //     console.log("jQuery ready");
-    // bob_alice();
-    // redraw();
-    // JAVA  DROPDOWN
-    // Document.ready(function () {
-    //     $('.dropdown-toggle').dropdown();
-    // });
+        resizeCanvas();
 
-    
-    resizeCanvas();
-
-})();
+    })();
 </script>
 {% endblock %}

@@ -202,6 +202,38 @@
         }
     }
 
+    function MIS(nb_bob = 100) {
+        // DRAW NODES IN NETWORK LIK GRAPH
+
+        for (var i = 0; i < nb_bob; i++) {
+            var x = Math.random() * canvas.width;
+            var y = Math.random() * canvas.height;
+            var bob = new Node(x, y, 10, 'blue', 'Bob' + i);
+            nodes.push(bob);
+        }
+
+
+
+
+    }
+
+    function get_graph_density(){
+        // calculate the density of the graph
+        // density = 2 * |E| / |V| * (|V| - 1)
+        // |E| = number of edges
+        
+    }
+
+
+
+    function changeBobAlice() {
+        var e = document.getElementById("alice_bob");
+        var mode = e.options[e.selectedIndex].value;
+        console.log(mode);
+  
+    }
+
+
 
     console.log(new Node(10, 20, 5, 'red', 'A'));
 

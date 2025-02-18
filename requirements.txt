@@ -4,3 +4,6 @@ pytest
 opencv-python
 tensorflow
 keras
+torch
+torchvision
+matplotlib

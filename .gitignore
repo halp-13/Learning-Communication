@@ -1,4 +1,3 @@
-env
-**/__pycahce__/*
+env/
+__pycahce__/
 
-__pycache__/AliceBobBase.cpython-312.pyc

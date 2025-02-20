@@ -1,155 +1,135 @@
-import numpy as np
+import random
 
-class Bob:
-    """Représente Bob, qui envoie des données à Alice."""
-    def __init__(self, transmission_length=50, stop_at=30):
-        self.transmission_length = transmission_length
-        self.stop_at = stop_at
-        self.sent_data = np.tile(
-            np.array([1]*2 + [0]*(5 - 2), dtype=int),
-            self.transmission_length // 5 + 1
-        )[:self.transmission_length]
+class Node:
+    """
+    Cette classe représente un nœud dans la communication P2P.
+    Chaque nœud peut envoyer et recevoir des bits (0 ou 1).
+    Il peut également être déconnecté.
+    """
+    def __init__(self, name, p_one):
+        """
+        name: Nom du nœud (ex: 'Alice' ou 'Bob')
+        p_one: Probabilité qu'un message envoyé par ce nœud soit un bit 1
+        """
+        self.name = name
+        self.p_one = p_one
+        self.is_disconnected = False  # Statut de déconnexion
+        self.received_bits = []       # Bits reçus de l'autre nœud
+        self.count_ones = 0          # Nombre de bits 1 reçus
+        self.count_total = 0         # Nombre total de bits reçus
     
-    def transmit(self):
-        """Transmet les données jusqu'à stop_at bits."""
-        return self.sent_data[:self.stop_at]
+    def send_message(self):
+        """
+        Envoie un bit (0 ou 1) si le nœud n'est pas déconnecté.
+        Retourne None si le nœud est déconnecté.
+        """
+        if self.is_disconnected:
+            return None
+        # Choisit un bit = 1 avec probabilité p_one
+        bit = 1 if random.random() < self.p_one else 0
+        return bit
+    
+    def receive_message(self, bit):
+        """
+        Reçoit un bit et met à jour les statistiques.
+        """
+        self.received_bits.append(bit)
+        self.count_total += 1
+        if bit == 1:
+            self.count_ones += 1
+    
+    def guess_message(self):
+        """
+        Devine un bit lorsque l'autre nœud est déconnecté et ne renvoie rien.
+        La probabilité d'être 1 = (count_ones / count_total).
+        Retourne 0 par défaut si aucun bit n'a été reçu (count_total=0).
+        """
+        if self.count_total == 0:
+            return 0  # Pas de donnée statistique, on renvoie 0 par défaut.
+        
+        # Calcul de la probabilité d'obtenir un bit 1
+        prob_one = self.count_ones / self.count_total
+        bit_guess = 1 if random.random() < prob_one else 0
+        return bit_guess
 
-class Alice:
-    """Représente Alice, qui reçoit des données de Bob, envoie ses propres données et estime les bits manquants."""
-    def __init__(self, buffer_size=100, transmission_length=50):
-        self.buffer_size = buffer_size
-        self.transmission_length = transmission_length
-        self.buffer = np.zeros(transmission_length, dtype=int)
-        self.sent_data = np.random.randint(0, 2, size=transmission_length)
-        self.estimated_data = np.zeros(transmission_length, dtype=int)
+
+def simulate_communication(p_alice=0.5, p_bob=0.5, steps=20):
+    """
+    Lance la simulation d'une communication entre Alice et Bob
+    sur un nombre de 'steps'(nombre de messages) défini.
+    Bob sera déconnecté à une étape aléatoire entre 1 et 'steps'.
+    """
+    alice = Node("Alice", p_alice)
+    bob   = Node("Bob", p_bob)
     
-    def receive(self, data):
-        """Reçoit les données envoyées par Bob et les stocke dans son tampon."""
-        received_length = min(self.transmission_length, len(data))
-        self.buffer[:received_length] = data[:received_length]
-        return received_length
+    # Choisit une étape aléatoire où Bob sera déconnecté
+    disconnect_step = random.randint(50, steps)
     
-    def estimate_ratio(self, received_length):
-        """Estime le ratio des bits 1 dans les données reçues."""
-        ones_received = np.sum(self.buffer[:received_length])
-        return ones_received / received_length if received_length > 0 else 0
-    def fill_pattern(self, received_length, period_len=6):
-        """
-        Remplit les bits manquants (depuis 'received_length' jusqu'à la fin de 'transmission_length')
-        en répétant un motif de longueur 'period_len'.
-        On suppose que les 'period_len' premiers bits reçus constituent le motif de base.
-        """
-        received_data = self.buffer[:received_length]
-        needed = self.transmission_length - received_length
+    # Liste pour stocker les bits réels envoyés par Bob
+    bob_sent_bits = []
+    # Liste pour stocker les bits devinés par Alice après la déconnexion de Bob
+    alice_guessed_bits = []
+    
+    print("\n--- Simulation starts ---")
+    print(f"Alice sends '1' with probability {p_alice}.")
+    print(f"Bob sends '1' with probability {p_bob}.")
+    print(f"Bob will be disconnected at a random step: {disconnect_step}.\n")
+    
+    for step in range(1, steps + 1):
+        print(f"[Step {step}]")
         
-        # Hypothèse simple : on considère que le motif de base se trouve dans
-        # les 'period_len' premiers bits reçus.
-        pattern = received_data[:period_len]
+        # Vérifie si Bob doit se déconnecter à cette étape
+        if step == disconnect_step and not bob.is_disconnected:
+            bob.is_disconnected = True
+            print("** Bob is now disconnected! **")
         
-        fill = []
-        partial_index = received_length % period_len
-        
-        # Si on se trouve au milieu d'un motif, on complète d'abord la fin de ce motif.
-        if partial_index != 0:
-            remain_in_cycle = period_len - partial_index
-            take = min(remain_in_cycle, needed)
-            fill.extend(pattern[partial_index : partial_index + take])
-            needed -= take
-        
-        # On poursuit ensuite en répétant le motif autant que nécessaire.
-        while needed > 0:
-            if needed >= period_len:
-                fill.extend(pattern)
-                needed -= period_len
+        # -- Alice --> Bob --
+        bit_from_alice = alice.send_message()
+        if bit_from_alice is not None:
+            # Si Bob n'est pas déconnecté, il reçoit le bit
+            if not bob.is_disconnected:
+                bob.receive_message(bit_from_alice)
+                print(f"Alice sent: {bit_from_alice} --> Bob received.")
             else:
-                fill.extend(pattern[:needed])
-                needed = 0
+                # Bob est déconnecté, il ne reçoit pas
+                print(f"Alice sent: {bit_from_alice}, but Bob is disconnected.")
+        else:
+            # Dans ce scénario, Alice ne se déconnecte pas,
+            # donc ce bloc n'est pas vraiment utilisé.
+            print("Alice is disconnected (not handled in this scenario).")
         
-        # Finalement, on place le résultat dans 'self.estimated_data'.
-        self.estimated_data[:received_length] = received_data
-        self.estimated_data[received_length:] = fill
-        # Retour
-        return self.estimated_data
-
-    
-    def estimate_missing_data(self, received_length, period_len=6):
-        """
-        Remplit d'abord les bits manquants en répétant un motif,
-        puis applique un flipping de certains bits afin de s'approcher du ratio de bits à 1
-        estimé à partir des données déjà reçues.
-        """
-        # 1) Remplir les bits restants avec le motif répété
-        self.fill_pattern(received_length, period_len=period_len)
-        
-        # 2) Calculer le ratio estimé à partir des bits reçus
-        estimated_ratio = self.estimate_ratio(received_length)
-        
-        # 3) Calculer le nombre total de 1 nécessaires sur l'ensemble (transmission_length)
-        total_ones_needed = int(round(estimated_ratio * self.transmission_length))
-        
-        # 4) Nombre actuel de 1 dans 'estimated_data'
-        current_ones = np.sum(self.estimated_data)
-        
-        # 5) Calcul de la différence
-        difference = total_ones_needed - current_ones
-        
-        if difference == 0:
-        # Le nombre de 1 est déjà correct, on ne fait rien
-            return self.estimated_data 
-        
-        # On ne flippe que dans la partie estimée (non reçue),
-        # c’est-à-dire l’intervalle [received_length : transmission_length].
-        estimated_part = self.estimated_data[received_length:]
-        
-        if difference > 0:
-            # On doit convertir certains 0 en 1
-            zero_indices = np.where(estimated_part == 0)[0]
-            if len(zero_indices) == 0:
-                return  # Pas de 0 disponible pour le flipping
-            num_to_flip = min(difference, len(zero_indices))
-            flip_indices = np.random.choice(zero_indices, size=num_to_flip, replace=False)
-            estimated_part[flip_indices] = 1
+        # -- Bob --> Alice --
+        bit_from_bob = bob.send_message()
+        if bit_from_bob is not None:
+            # Bob n'est pas déconnecté, donc Alice reçoit ce bit
+            alice.receive_message(bit_from_bob)
+            bob_sent_bits.append(bit_from_bob)
+            print(f"Bob sent: {bit_from_bob} --> Alice received.")
+        else:
+            # Bob est déconnecté, donc Alice doit deviner le bit
+            guessed_bit = alice.guess_message()
+            alice_guessed_bits.append(guessed_bit)
             
-        else:  # difference < 0
-            # On doit convertir certains 1 en 0
-            diff_abs = abs(difference)
-            one_indices = np.where(estimated_part == 1)[0]
-            if len(one_indices) == 0:
-                return  # Pas de 1 disponible pour le flipping
-            num_to_flip = min(diff_abs, len(one_indices))
-            flip_indices = np.random.choice(one_indices, size=num_to_flip, replace=False)
-            estimated_part[flip_indices] = 0
-        # Retour
-        return self.estimated_data
-
+            ratio_str = f"{alice.count_ones}/{alice.count_total}" if alice.count_total else "0"
+            print(f"Bob is disconnected; Alice guessed using ratio {ratio_str}: {guessed_bit}")
     
-    def send(self):
-        """Envoie ses propres données."""
-        return self.sent_data
+    print("\n--- Simulation ends ---")
+    print(f"Alice received {alice.count_total} bits from Bob (1s: {alice.count_ones}).")
+    print(f"Bob received {bob.count_total} bits from Alice (1s: {bob.count_ones}).")
+    
+    # Rapport final
+    print("\nDetailed report:")
+    print(f"Real bits sent by Bob (before disconnection): {bob_sent_bits}")
+    print(f"Bits guessed by Alice (after Bob got disconnected): {alice_guessed_bits}\n")
+    
+    return alice, bob, bob_sent_bits, alice_guessed_bits
 
 
-# if main
 
 if __name__ == "__main__":
-    
+    simulate_communication(
+        p_alice=0.8,   # Probabilité  Alice
+        p_bob=0.5,     # Probabilité  Bob
+        steps=100       # Nombre total des messages échangés(chaque message est un bit)
+    )
 
-    # Initialisation de Bob et Alice
-    bob = Bob()
-    alice = Alice()
-
-    # Transmission et réception des données
-    bob_transmitted_data = bob.transmit()
-    received_length = alice.receive(bob_transmitted_data)
-
-    # Estimation des bits manquants (en utilisant le motif + flipping pour conserver le ratio)
-    final_estimated_data = alice.estimate_missing_data(received_length, period_len=5)
-
-    # Estimation du ratio
-    estimated_ratio = alice.estimate_ratio(received_length)
-    actual_ratio = np.sum(bob_transmitted_data) / bob.stop_at
-
-    # Affichage des résultats
-    print(f"Ratio réel des bits 1 envoyés par Bob: {actual_ratio:.3f}")
-    print(f"Ratio estimé par Alice: {estimated_ratio:.3f}")
-    print(f"Données réelles envoyées par Bob: {bob.sent_data}")
-    print(f"Données estimées par Alice: {final_estimated_data}")

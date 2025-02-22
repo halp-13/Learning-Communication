@@ -22,6 +22,7 @@
         </div>
         <div class="col-3 h-100 p-0 ">
             <div class="card h-100 border-0 rounded-0" style="background-color: #4c4c4c;">
+<<<<<<< HEAD
                 <div class="card-body d-flex flex-column">
                     <div class="card">
                         <div class="card-header text-dark text-center">
@@ -34,6 +35,16 @@
                                 <option value="dog">ALice-Bob</option>
                                 <option value="cat">Alice-N-Bob</option>
                                 <option value="hamster">Alice-NNIST</option>
+=======
+                <div class="card-body">
+                    <div class="d-flex justify-content-center">
+                        <div class="d-flex">
+                            <select name="pets" id="pet-select" onchange="changeMode()">
+                                <option value="" >--Mode-</option>
+                                <option value="alice-bob" onclick="clearCanvas">ALice-Bob</option>
+                                <option value="alice-n-bob">Alice-N-Bob</option>
+                                <option value="alice-hamster">Alice-NNIST</option>
+>>>>>>> adfeb88 (Mode)
                                 <option value="parrot">MIS</option>
                             </select>
                         </div>
@@ -233,6 +244,7 @@
   
     }
 
+<<<<<<< HEAD
 
 
     console.log(new Node(10, 20, 5, 'red', 'A'));
@@ -244,10 +256,18 @@
     function resizeCanvas() {
         canvas.width = canevas_box.clientWidth;
         canvas.height = canevas_box.clientHeight;
+=======
+function changeMode() {
+    var e = document.getElementById("pet-select");
+    var mode = e.options[e.selectedIndex].value;
+    var title = document.getElementById('Titre');
+    if (mode == 'alice-bob') {
+>>>>>>> adfeb88 (Mode)
         clearCanvas();
 
         redraw();
     }
+<<<<<<< HEAD
 
     window.addEventListener('resize', resizeCanvas);
 
@@ -272,6 +292,19 @@
             x: canvas.width / 2,
             y: canvas.height / 2
         }
+=======
+    else if (mode == 'alice-n-bob') {
+        clearCanvas();
+        alice_n_bob();
+        redraw();
+        title.innerHTML = 'Alice-N-Bob';
+    }
+    else if (mode == 'alice-hamster') {
+        clearCanvas();
+        alice_n_bob(784);
+        redraw();
+        title.innerHTML = 'Alice-NNIST';
+>>>>>>> adfeb88 (Mode)
     }
     // draw line
     function drawLine(x1, y1, x2, y2) {

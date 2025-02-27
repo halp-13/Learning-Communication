@@ -6,5 +6,46 @@ html , body {
     height: 100%;
     width: 100%;
     color: #ffffff !important;
+
 }
 
+.d-none-imp {
+    display: none !important;
+}
+.d-block-imp {
+    display: block !important;
+}
+
+.console {
+    background-color: black;
+    color: limegreen;
+    font-family: monospace;
+    padding: 10px;
+    border-radius: 5px;
+    border: 2px solid #333;
+    resize: none;
+    height: 200px;
+    overflow: hidden; 
+    white-space: pre-wrap; 
+} 
+.console::-webkit-scrollbar {
+    display: none;
+}
+
+/* .console {
+    background-color: black;
+    color: limegreen;
+    font-family: monospace;
+    padding: 10px;
+    border-radius: 5px;
+    border: 2px solid #333;
+    resize: none;
+    height: 250px;
+    width: 100%;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    display: block;
+}
+.console::-webkit-scrollbar {
+    display: none;
+} */

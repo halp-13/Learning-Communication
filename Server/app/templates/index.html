@@ -261,7 +261,7 @@
             let sum_one = this.generateBits.reduce((acc, val) => acc + val, 0);
             let prob_one = sum_one / len;
 
-            let bit = prob_one < this.p_one ? 1 : 0;
+            let bit = prob_one <= this.p_one ? 1 : 0;
             this.generateBits.push(bit);
             return bit;
         
@@ -279,28 +279,26 @@
         }
 
         guessMessage() {
-            /**
-             * Devine un bit lorsque l'autre nœud est déconnecté et ne renvoie rien.
-             * La probabilité d'être 1 = (countOnes / countTotal).
-             * Retourne 0 par défaut si aucun bit n'a été reçu (countTotal = 0).
-             */
+
             if (this.countTotal === 0) {
-                return 0;
+                let bit = choice([0, 1]);
+                return bit;
             }
-            let probOne = this.countOnes / this.countTotal;
-            return probOne > 0.5 ? 1 : 0;
+
+            let probOne_gess = this.countOnes / this.countTotal;
+            let len = this.receivedBits.length;
+            let sum_one = this.receivedBits.reduce((acc, val) => acc + val, 0);
+            let prob_one = sum_one / len;
+            let guessedBit = prob_one <= probOne_gess ? 1 : 0;
+            return guessedBit;
         }
     }
-    function choice(liste){
-      
+    function choice(liste) {
         let i = Math.floor(Math.random() * liste.length);
-        let r = liste[i];
+        return liste[i]; // Retourne l'élément choisi
     }
     async function simulateCommunication(p_alice = 0.5, p_bob = 0.5, steps = 20) {
-        /**
-         * Simule la communication entre Alice et Bob sur un nombre défini de messages.
-         * Bob est déconnecté à une étape aléatoire.
-         */
+   
         let alice = new Node("Alice", p_alice);
         let bob = new Node("Bob", p_bob);
 
@@ -356,7 +354,6 @@
 
                 bob_line[1] = bitFromAlice;
                 alice_line[1] = bitFromBob;
-
                 bobSentBits.push(bitFromAlice);
 
             }

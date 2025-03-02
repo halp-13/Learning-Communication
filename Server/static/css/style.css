@@ -25,8 +25,8 @@ html , body {
     border: 2px solid #333;
     resize: none;
     height: 200px;
-    overflow: hidden; 
-    white-space: pre-wrap; 
+    /* overflow: hidden;  */
+    /* white-space: pre-wrap;  */
 } 
 .console::-webkit-scrollbar {
     display: none;

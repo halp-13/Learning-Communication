@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block content %}
 <div class="container-fluid h-100">
     <div class="row justify-content-center h-100">
@@ -264,22 +266,24 @@
                         </div>
                         <div class=" d-flex p-1 flex-column" style="flex: 1;">
                             <div class="d-flex bg-danger" style="flex: 1;">
-                                <div class="d-flex  " style="flex: 1; background-color: burlywood;"></div>
-                                <div class="d-flex  " style="flex: 1; background-color: rgb(135, 222, 179);"></div>
-
+                                <div class=" card d-flex  " style="flex: 1; background-color: burlywood;">
+                                    <div class="card-header text-center">Original</div>
+                                    <img src="{% static 'original.png' %}" alt="original" class="img-fluid">
+                                </div>
+                                <div class="card d-flex  " style="flex: 1; background-color: rgb(135, 222, 179);">
+                                    <div class="card-header text-center">Restore</div>
+                                    <img src="{% static 'reconstitued.png' %}" alt="reconstitued" class="img-fluid">
+                                </div>
                             </div>
-                            <div class="d-flex bg-danger" style="flex: 1;">
-                                <div class="d-flex  " style="flex: 1; background-color: rgb(226, 221, 213);"></div>
-                                <div class="d-flex  " style="flex: 1; background-color: rgb(40, 66, 53);"></div>
+                            <div class=" d-flex bg-danger " style="flex: 1;">
+                                <div class="card d-flex  " style="flex: 1; background-color: rgb(226, 221, 213);">
+                                    <div class="card-header text-center">Noisy</div>
+                                    <img src="{% static 'droped.png' %}" alt="Droped" class="img-fluid">
 
+                                </div>
+                                <div class="d-flex bg-dark " style="flex: 1; "></div>
                             </div>
-                            
                         </div>
-
-
-
-
-
                     </div>
                     <div id="box_mis" class="box_options h-100 d-none"> </div>
 
@@ -383,6 +387,58 @@
             return guessedBit;
         }
     }
+
+    // Canvas
+    // draw line
+    function drawLine(x1, y1, x2, y2) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    }
+
+    // clear canvas
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function redraw() {
+        clearCanvas();
+
+        nodes.forEach(node => {
+            drawNode(node.x, node.y, node.r, node.color, node.name);
+        });
+    }
+
+    function getCenter() {
+        return {
+            x: canvas.width / 2,
+            y: canvas.height / 2
+        }
+    }
+
+    // draw node point
+    function drawNode(x, y, r, color, name) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2, true);
+        ctx.fillStyle = color;
+        ctx.fill();
+        // draw name bottom
+        ctx.font = '12px Arial';
+        ctx.fillStyle = 'black';
+
+        ctx.fillText(name, x - 12, y + 20);
+    }
+
+    function resizeCanvas() {
+        canvas.width = canevas_box.clientWidth;
+        canvas.height = canevas_box.clientHeight;
+        clearCanvas();
+
+        redraw();
+    }
+
+    // logic
 
     function choice(liste) {
 
@@ -505,7 +561,12 @@
         btn.classList.remove('btn-success');
         btn.classList.add('btn-danger');
         btn.innerHTML = 'Stop';
-        simulateCommunication();
+
+        let p_alice = parseFloat(document.getElementById('ratio_alice').value);
+        let p_bob = parseFloat(document.getElementById('ratio_bob').value);
+        let steps = 20;
+
+        simulateCommunication(p_alice, p_bob, steps);
 
 
 
@@ -573,13 +634,6 @@
 
     }
 
-    function get_graph_density() {
-        // calculate the density of the graph
-        // density = 2 * |E| / |V| * (|V| - 1)
-        // |E| = number of edges
-
-    }
-
     function changeBobAlice() {
         var e = document.getElementById("alice_bob");
         var mode = e.options[e.selectedIndex].value;
@@ -589,55 +643,12 @@
 
     // listerners and resize canvas
 
-    function resizeCanvas() {
-        canvas.width = canevas_box.clientWidth;
-        canvas.height = canevas_box.clientHeight;
-        clearCanvas();
-
-        redraw();
-    }
 
     window.addEventListener('resize', resizeCanvas);
 
-    // draw node point
-    function drawNode(x, y, r, color, name) {
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2, true);
-        ctx.fillStyle = color;
-        ctx.fill();
-        // draw name bottom
-        ctx.font = '12px Arial';
-        ctx.fillStyle = 'black';
 
-        ctx.fillText(name, x - 12, y + 20);
-    }
 
-    function getCenter() {
-        return {
-            x: canvas.width / 2,
-            y: canvas.height / 2
-        }
-    }
-    // draw line
-    function drawLine(x1, y1, x2, y2) {
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-    }
 
-    // clear canvas
-    function clearCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function redraw() {
-        clearCanvas();
-
-        nodes.forEach(node => {
-            drawNode(node.x, node.y, node.r, node.color, node.name);
-        });
-    }
 
     function changeMode() {
 

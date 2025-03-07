@@ -1,3 +1,4 @@
 env/
-**/__pycahce__/
+__pycahce__/
+*.pyc
 data/

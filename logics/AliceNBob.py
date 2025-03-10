@@ -43,6 +43,15 @@ class Node:
         bit_guess = 1 if random.random() < prob_one else 0
         return bit_guess
 
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "p_one": self.p_one,
+            "is_disconnected": self.is_disconnected,
+            "received_bits": self.received_bits,
+            "count_ones": self.count_ones,
+            "count_total": self.count_total
+        }
 
 class Alice(Node):
     """
@@ -105,7 +114,7 @@ class Alice(Node):
             return self.guess_message()
 
 
-def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=784, disconnect_percentage=20, message_length=100):
+def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, disconnect_percentage=20, message_length=100):
     """
     Lance une simulation améliorée avec plusieurs Bobs.
     """
@@ -114,7 +123,7 @@ def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=784, discon
     
     num_disconnected = int(num_bobs * disconnect_percentage / 100)
     disconnected_bobs = random.sample(range(num_bobs), num_disconnected)
-    disconnect_steps = {bob_id: random.randint(1, message_length-1) for bob_id in disconnected_bobs}
+    disconnect_steps = {bob_id: random.randint(1, message_length-1) for bob_id in disconnected_bobs} # Étapes de déconnexion
     
     results = {
         "real_bits": {},
@@ -149,6 +158,7 @@ def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=784, discon
                 bob.receive_message(bit_from_alice)
             
             would_send_bit = 1 if random.random() < p_bob else 0
+            
             results["would_send_bits"][bob_id].append(would_send_bit)
             
             bit_from_bob = bob.send_message()

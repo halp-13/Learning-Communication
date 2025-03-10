@@ -16,11 +16,8 @@
 
                     <div class="d-flex align-items-center justify-content-center  " id="canvasBox" style="flex:1;"
                         ref="canvasBox">
-                        <div id="myDiagramDiv" style="flex:1;"></div>
-
-
-
-                        <!-- <canvas style="margin:0;padding:0; background-repeat: no-repeat; background-position:center; " ref="canvas" id="canvas" class="canvasView"></canvas> -->
+                        <canvas style="margin:0;padding:0; background-repeat: no-repeat; background-position:center; "
+                            ref="canvas" id="canvas" class="canvasView"></canvas>
                     </div>
                 </div>
             </div>
@@ -95,26 +92,34 @@
                                     class="btn btn-success m-1">Start</button>
                             </div>
                         </div>
-                        <div class=" d-flex p-1 flex-column" style="flex: 1;">
+                        <div class=" d-flex p-1" style="flex: 1;">
 
 
                             <!-- <textarea id="console_alice_bob" class="console" style="height: 100%;width: 100%;" readonly></textarea> -->
-                            <table style="flex: 1;">
+                            <table>
                                 <thead>
-
                                     <tr>
-                                        <td width="20%" class="text-center">Alice</td>
-                                        <td width="20%" class="text-center">Bob</td>
+                                        <th scope="col" class="text-center" colspan="3" >Alice</th>
+                                        <th scope="col" class="text-center" colspan="2">Bob</th>
+                                    </tr>
+                                    <tr>
+                                        <td width="20%" class="text-center">Generate</td>
+                                        <td width="20%" class="text-center">Recieve</td>
                                         <td width="20%" class="text-center">Guess</td>
+                                        <td width="20%" class="text-center">Generate</td>
+                                        <td width="20%" class="text-center">Recieve</td>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td  colspan="3" class="flex" >
+                                        <td height="100" colspan="3">
                                             <textarea id="console_alice_bob_alice" class="console"
                                                 style="height: 100%;width: 100%;" readonly></textarea>
                                         </td>
-                                 
+                                        <td height="100" colspan="2">
+                                            <textarea id="console_alice_bob_bob" class="console"
+                                                style="height: 100%;width: 100%;" readonly></textarea>
+                                        </td>
                                     </tr>
                                 </tbody>
 
@@ -126,7 +131,9 @@
                                         <td colspan="2">
                                             70%
                                         </td>
-                                      
+                                        <td colspan="2">
+                                            70%
+                                        </td>
                                     </tr>
 
                             </table>
@@ -190,7 +197,6 @@
                                       </tr> -->
                                     </tbody>
                                 </table>
-                                <button onclick="init_alice_n_bob()">Run</button>
                             </div>
                         </div>
                         <div class=" d-flex p-1 flex-column" style="flex: 1;">
@@ -198,7 +204,7 @@
                             <div class="d-flex bg-danger" style="flex: 1;"></div>
                         </div>
                     </div>
-                    <div id="box_Mnist" class="box_options h-100 d-none flex-column">
+                    <div id="box_Mnist" class="box_options h-100 d-none flex-column"> 
                         <div class="card d-flex " style="background-color: rgba(255, 255, 255, 0.616);">
                             <div class="card-header text-dark text-center">
                                 Options
@@ -285,15 +291,6 @@
             </div>
         </div>
     </div>
-
-    <div id="loader" style="display: none;">
-        <div
-            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-            <p>Création des nœuds en cours...</p>
-            <progress id="progressBar" value="0" max="100"></progress>
-            <span id="progressText">0%</span>
-        </div>
-    </div>
 </div>
 {% endblock %}
 
@@ -303,255 +300,8 @@
     //     console.log("jQuery ready");
     // });
     const canevas_box = document.getElementById('canvasBox');
-    var $ = go.GraphObject.make;
-    var myDiagram =
-        $(go.Diagram, "myDiagramDiv",
-            {
-                "undoManager.isEnabled": true,
-                // layout: $(go.ForceDirectedLayout),  // Ajout d'un layout pour éviter la superposition
-                "panningTool.isEnabled": false,
-                isReadOnly: false, // Permet de cliquer sur les cellules
-                // allowZoom: false,
-                // allowSelect: false,
-                initialAutoScale: go.AutoScale.Uniform
-            });
-
-
-
-
-
-
-    function addNode(name) {
-        // var newNodeKey = "N" + (myDiagram.model.nodeDataArray.length + 1);
-        var newNodeKey = name;
-        var x = Math.random() * 400;
-        var y = Math.random() * 400;
-        myDiagram.startTransaction("add node");
-        myDiagram.model.addNodeData({ key: newNodeKey, loc: x + " " + y, color: "lightblue" });
-        myDiagram.model.addLinkData({ from: "Alice", to: newNodeKey, color: "black" }); // Relier chaque nouveau nœud à A
-        // myDiagram.model.addLinkData({ from: newNodeKey, to: "A", color: "black" }); // Ajouter un lien retour pour rendre le graphe non orienté
-        myDiagram.commitTransaction("add node");
-
-        // Ajouter le nouveau nœud à la liste des nœuds
-        var option = document.createElement("option");
-        option.text = newNodeKey;
-        // document.getElementById("nodes").add(option);
-    }
-
-    function updateNode(nodeKey, color) {
-        var node = myDiagram.model.findNodeDataForKey(nodeKey);
-        if (node) {
-            myDiagram.startTransaction("update node");
-            myDiagram.model.setDataProperty(node, "color", color || "lightgreen");
-            myDiagram.commitTransaction("update node");
-        } else {
-            alert("Nœud introuvable");
-        }
-    }
-
-    function deleteNode(nodeKey) {
-        var node = myDiagram.model.findNodeDataForKey(nodeKey);
-        if (node) {
-            myDiagram.startTransaction("delete node");
-            myDiagram.model.removeNodeData(node);
-            myDiagram.commitTransaction("delete node");
-        } else {
-            alert("Nœud introuvable");
-        }
-    }
-
-    function findLink(fromNodeKey, toNodeKey) {
-        return myDiagram.model.linkDataArray.find(link =>
-            (link.from === fromNodeKey && link.to === toNodeKey) ||
-            (link.from === toNodeKey && link.to === fromNodeKey));
-    }
-
-    function deleteLink(fromNodeKey, toNodeKey) {
-        var link = findLink(fromNodeKey, toNodeKey);
-        if (link) {
-            myDiagram.startTransaction("delete link");
-            myDiagram.model.removeLinkData(link);
-            myDiagram.commitTransaction("delete link");
-        } else {
-            alert("Lien introuvable");
-        }
-    }
-
-    function nodeClicked(e, node) {
-        // updateNode(node.data.key);
-    }
-
-    function updateLink(fromNodeKey, toNodeKey, color) {
-        var link = findLink(fromNodeKey, toNodeKey);
-        if (link) {
-            myDiagram.startTransaction("update link");
-            myDiagram.model.setDataProperty(link, "color", color || "red");
-            myDiagram.commitTransaction("update link");
-        } else {
-            alert("Lien introuvable");
-        }
-    }
-
-    function linkClicked(e, link) {
-        // alert("Lien cliqué entre " + link.data.from + " et " + link.data.to);
-        // updateLink(link.data.from, link.data.to, "red");
-    }
-
-    _deleteNode = function () {
-        var nodeKey = document.getElementById("nodes").value;
-        deleteNode(nodeKey);
-    }
-    _deleteLink = function () {
-        var fromNodeKey = "Alice";
-        var toNodeKey = document.getElementById("nodes").value;
-        deleteLink(fromNodeKey, toNodeKey);
-    }
-
-
-
-    function alice_bob() {
-        myDiagram.layout = $(go.ForceDirectedLayout);
-        // console.log({ layout: myDiagram.layout });
-
-        myDiagram.nodeTemplate =
-            $(go.Node, "Auto",
-                { locationSpot: go.Spot.Center, click: nodeClicked },
-                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-                $(go.Shape, "RoundedRectangle",
-                    { fill: "lightblue" },
-                    new go.Binding("fill", "color")),
-                $(go.TextBlock,
-                    { margin: 8 },
-                    new go.Binding("text", "key"))
-            );
-
-        myDiagram.linkTemplate =
-            $(go.Link,
-                { routing: go.Link.Orthogonal, corner: 5, click: linkClicked },
-                $(go.Shape, new go.Binding("stroke", "color"))
-            );
-        myDiagram.model = new go.GraphLinksModel(
-            [
-                { key: "Alice", loc: "0 0", color: "lightblue" },
-                { key: "Bob", loc: "100 0", color: "lightblue" }
-            ],
-            [
-                { from: "Alice", to: "Bob", color: "black" }
-            ]
-        );
-        fetch_alice_bob();
-    }
-
-    function alice_mnist() {
-
-        // remove diagram layout CircularLayout Sample
-        myDiagram.layout = $(go.Layout);
-        // console.log({ layout: myDiagram.layout });
-        const rows = 25, cols = 25; // Taille de la grille
-        const nodeSize = 100; // Taille d'une cellule
-
-        myDiagram.nodeTemplate = $(
-            go.Node,
-            "Auto",
-            { locationSpot: go.Spot.Center },
-            $(
-                go.Shape,
-                "Rectangle",
-                {
-                    fill: "white", // Couleur par défaut
-                    stroke: "#A2A2A2", // Couleur de la bordure
-                    strokeWidth: 1,
-                    width: nodeSize,
-                    height: nodeSize
-                },
-                new go.Binding("fill", "color") // Lie la couleur à la propriété "color"
-            ),
-            {
-                click: (e, node) => {
-                    // Changer la couleur de la cellule au clic
-                    const colors = ["white", "lightblue", "lightgreen", "pink", "yellow"];
-                    const currentColor = node.data.color || "white";
-                    const nextColor = colors[(colors.indexOf(currentColor) + 1) % colors.length] || colors[0];
-                    myDiagram.model.setDataProperty(node.data, "color", nextColor);
-                }
-            }
-        );
-
-        // Création de la grille
-        const nodeDataArray = [];
-        for (let i = 0; i < rows; i++) {
-            for (let j = 0; j < cols; j++) {
-                nodeDataArray.push({
-                    key: `${i}-${j}`, // Identifiant unique
-                    loc: new go.Point(j * nodeSize, i * nodeSize), // Position dans la grille
-                    color: "green" // Couleur initiale
-                });
-            }
-        }
-
-        // Appliquer le modèle
-        myDiagram.model = new go.GraphLinksModel({ nodeDataArray });
-    }
-
-
-    function showLoader() {
-        document.getElementById("loader").style.display = "block";
-    }
-
-    function hideLoader() {
-        document.getElementById("loader").style.display = "none";
-    }
-
-    function updateProgress(progress) {
-        document.getElementById("progressBar").value = progress;
-        document.getElementById("progressText").innerText = progress + "%";
-    }
-
-    function alice_n_bob(totalNodes = 10) {
-
-
-        myDiagram.layout = $(go.ForceDirectedLayout);
-        myDiagram.nodeTemplate =
-            $(go.Node, "Auto",
-                { locationSpot: go.Spot.Center, click: nodeClicked },
-                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-                $(go.Shape, "RoundedRectangle",
-                    { fill: "lightblue" },
-                    new go.Binding("fill", "color")),
-                $(go.TextBlock,
-                    { margin: 8 },
-                    new go.Binding("text", "key"))
-            );
-
-        myDiagram.linkTemplate =
-            $(go.Link,
-                { routing: go.Link.Orthogonal, corner: 5, click: linkClicked },
-                $(go.Shape, new go.Binding("stroke", "color"))
-            );
-
-        myDiagram.model = new go.GraphLinksModel([{ key: "Alice", loc: "0 0", color: "lightblue" }]);
-        showLoader();
-
-        let createdNodes = 0;
-
-        function addNodeWithProgress() {
-            if (createdNodes < totalNodes) {
-                var name = "Bob-" + createdNodes;
-                addNode(name);
-                createdNodes++;
-                updateProgress((createdNodes / totalNodes) * 100);
-                setTimeout(addNodeWithProgress, 100); // Ajoute un délai pour simuler une création plus lente
-            } else {
-                hideLoader();
-            }
-        }
-
-        addNodeWithProgress();
-    }
-
-
-
-
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
     var nodes = [];
     var alice = null;
     var bob = null;
@@ -597,7 +347,7 @@
             let bit = prob_one <= this.p_one ? 1 : 0;
             this.generateBits.push(bit);
             return bit;
-
+        
         }
 
         receiveMessage(bit) {
@@ -628,7 +378,7 @@
             let sum_one = this.receivedBits.reduce((acc, val) => acc + val, 0);
 
             let prob_one = sum_one / len;
-
+            
             let guessedBit = prob_one <= probOne_gess ? 1 : 0;
             this.receivedBits.push(guessedBit);
 
@@ -638,10 +388,54 @@
     }
 
     // Canvas
+    // draw line
+    function drawLine(x1, y1, x2, y2) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    }
 
+    // clear canvas
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
+    function redraw() {
+        clearCanvas();
 
+        nodes.forEach(node => {
+            drawNode(node.x, node.y, node.r, node.color, node.name);
+        });
+    }
 
+    function getCenter() {
+        return {
+            x: canvas.width / 2,
+            y: canvas.height / 2
+        }
+    }
+
+    // draw node point
+    function drawNode(x, y, r, color, name) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2, true);
+        ctx.fillStyle = color;
+        ctx.fill();
+        // draw name bottom
+        ctx.font = '12px Arial';
+        ctx.fillStyle = 'black';
+
+        ctx.fillText(name, x - 12, y + 20);
+    }
+
+    function resizeCanvas() {
+        canvas.width = canevas_box.clientWidth;
+        canvas.height = canevas_box.clientHeight;
+        clearCanvas();
+
+        redraw();
+    }
 
     // logic
     function choice(liste) {
@@ -651,7 +445,7 @@
     }
 
     async function simulateCommunication(p_alice = 0.5, p_bob = 0.5, steps = 20) {
-
+   
         let alice = new Node("Alice", p_alice);
         let bob = new Node("Bob", p_bob);
 
@@ -667,7 +461,7 @@
 
         let console_alice_bob_alice = document.getElementById('console_alice_bob_alice');
         let width_console_alice = console_alice_bob_alice.clientWidth;
-        let case_width_alice = (width_console_alice / 3) - 3;
+        let case_width_alice = (width_console_alice / 3) -3;
         console_alice_bob_alice.style.wordSpacing = case_width_alice + 'px';
 
 
@@ -675,7 +469,7 @@
 
         let console_alice_bob_bob = document.getElementById('console_alice_bob_bob');
         let width_console_bob = console_alice_bob_bob.clientWidth;
-        let case_width_bob = (width_console_bob / 2);
+        let case_width_bob = (width_console_bob / 2) ;
         console_alice_bob_bob.style.wordSpacing = case_width_bob + 'px';
 
 
@@ -701,7 +495,7 @@
 
 
 
-            if (!bob.isDisconnected && !alice.isDisconnected) {
+            if(!bob.isDisconnected && !alice.isDisconnected){
                 bob.receiveMessage(bitFromAlice);
                 alice.receiveMessage(bitFromBob);
 
@@ -710,7 +504,7 @@
                 bobSentBits.push(bitFromAlice);
 
             }
-            else {
+            else{
                 bob_line[1] = ".";
                 alice_line[1] = ".";
             }
@@ -722,7 +516,7 @@
             let ratioStr = alice.countTotal ? `${alice.countOnes}/${alice.countTotal}` : "0";
             console.log(`Bob is disconnected; Alice guessed using ratio ${ratioStr}: ${guessedBit}`);
 
-
+        
             console_alice_bob_alice.value += alice_line.join(' ') + '\n';
             console_alice_bob_bob.value += bob_line.join(' ') + '\n';
 
@@ -778,34 +572,8 @@
 
 
     }
-    function _Simulate_alice_bob() {
 
-
-        var btn = document.getElementById('alice_bob_btn');
-        if (btn.innerHTML == 'Stop') {
-            btn.classList.remove('btn-danger');
-            btn.classList.add('btn-success');
-            btn.innerHTML = 'Start';
-            return;
-        }
-        btn.classList.remove('btn-success');
-        btn.classList.add('btn-danger');
-        btn.innerHTML = 'Stop';
-
-        let p_alice = parseFloat(document.getElementById('ratio_alice').value);
-        let p_bob = parseFloat(document.getElementById('ratio_bob').value);
-        let steps = 20;
-
-        simulateCommunication(p_alice, p_bob, steps);
-
-
-
-
-
-
-    }
-
-    function _bob_alice() {
+    function bob_alice() {
         nodes = [];
 
         var center = getCenter();
@@ -820,9 +588,9 @@
 
     }
 
-    function _alice_n_bob(nb_bob = 100) {
+    function alice_n_bob(nb_bob = 100) {
         nodes = [];
-        // var center = getCenter();
+        var center = getCenter();
         var alice = new Node(center.x, center.y, 10, 'red', 'Alice');
         nodes.push(alice);
 
@@ -849,7 +617,7 @@
         }
     }
 
-    function _MIS(nb_bob = 100) {
+    function MIS(nb_bob = 100) {
         // DRAW NODES IN NETWORK LIK GRAPH
         nodes = [];
 
@@ -873,102 +641,7 @@
     }
 
     // listerners and resize canvas
-    // window.addEventListener('resize', resizeCanvas);
-
-
-    async function init_alice_n_bob() {
-        var nb_bob = document.getElementById('nb_bob').value;
-        alice_n_bob(nb_bob);
-        await fetchStream();
-    }
-
-
-    async function fetch_alice_bob() {
-        const response = await fetch("/AliceBob/");
-
-        if (!response.ok) {
-            console.error("Erreur:", response.statusText);
-            return;
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-                if (line.trim() === '') continue; // Ignorer les lignes vides
-
-                try {
-                    // Parser la ligne en tant qu'objet JSON
-                    const data = JSON.parse(line);
-                    console.log(data); // Afficher dans la console
-                    // Afficher dans l'interface utilisateur
-                    // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
-                } catch (error) {
-                    console.error('Erreur de parsing JSON :', error, line);
-                }
-            }
-
-            // Afficher dans une div HTML
-            // document.getElementById("output").innerText += chunk;
-        }
-    }
-
-    async function fetchStream() {
-        const response = await fetch("/AliceNBob/");
-
-        if (!response.ok) {
-            console.error("Erreur:", response.statusText);
-            return;
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-                if (line.trim() === '') continue; // Ignorer les lignes vides
-                
-                try {
-                    // Parser la ligne en tant qu'objet JSON
-                    if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
-                        // const data = JSON.parse(line.slice(5));
-                        const data = JSON.parse(line);
-                        console.log(data); // Afficher dans la console
-                        // Afficher dans l'interface utilisateur
-                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
-                    } else {
-                        
-                        console.log(line);
-                        
-                    }
-                
-                    // const data = JSON.parse(line);
-                    // console.log(data); // Afficher dans la console
-                    // // Afficher dans l'interface utilisateur
-                    // // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
-                    // console.log(data);
-                } catch (error) {
-                    console.error('Erreur de parsing JSON :', error, line);
-                }
-            }
-
-            // Afficher dans une div HTML
-            // document.getElementById("output").innerText += chunk;
-        }
-    }
+    window.addEventListener('resize', resizeCanvas);
 
     function changeMode() {
 
@@ -987,9 +660,9 @@
 
 
         if (mode == 'alice_bob') {
-
-
-            alice_bob();
+            clearCanvas();
+            bob_alice();
+            redraw();
             title.innerHTML = 'Alice-Bob';
 
             // get box 
@@ -1001,7 +674,9 @@
 
         }
         else if (mode == 'alice_n_bob') {
+            clearCanvas();
             alice_n_bob();
+            redraw();
             title.innerHTML = 'Alice-N-Bob';
 
             let box = document.getElementById('box_alice_n_bob');
@@ -1009,14 +684,16 @@
             box.classList.add('d-flex');
         }
         else if (mode == 'alice_mnist') {
-            // alice_n_bob(784);
-            alice_mnist();
+            clearCanvas();
+            alice_n_bob(784);
+            redraw();
             title.innerHTML = 'Alice-NNIST';
             let box = document.getElementById('box_Mnist');
             box.classList.remove('d-none');
             box.classList.add('d-flex');
         }
         else if (mode == 'mis') {
+            clearCanvas();
             // bob_alice();
             // redraw();
             title.innerHTML = 'MIS';
@@ -1025,7 +702,8 @@
 
     function update_nb_bob() {
         var nb_bob = document.getElementById('nb_bob').value;
-        // alice_n_bob(nb_bob);
+        alice_n_bob(nb_bob);
+        redraw();
     }
 
     (() => {
@@ -1039,9 +717,9 @@
         // });
 
 
+        resizeCanvas();
 
     })();
-
     // function alice_n_bob(nb_bob=10){
     //     nodes = [];
     //     var center = getCenter();
@@ -1060,8 +738,5 @@
     //         angle += step;
     //     }
     // }
-
-    // Initialisation au chargement de la page
-    // window.addEventListener("DOMContentLoaded", init);
 </script>
 {% endblock %}

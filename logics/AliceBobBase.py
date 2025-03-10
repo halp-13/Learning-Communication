@@ -6,13 +6,15 @@ class Node:
     Chaque nœud peut envoyer et recevoir des bits (0 ou 1).
     Il peut également être déconnecté.
     """
-    def __init__(self, name, p_one):
+    def __init__(self, name, p_one, buffer_size=20):
         """
         name: Nom du nœud (ex: 'Alice' ou 'Bob')
         p_one: Probabilité qu'un message envoyé par ce nœud soit un bit 1
+        buffer_size: Taille du buffer pour stocker les bits reçus
         """
         self.name = name
         self.p_one = p_one
+        self.buffer_size = buffer_size # Taille du buffer
         self.is_disconnected = False  # Statut de déconnexion
         self.received_bits = []       # Bits reçus de l'autre nœud
         self.count_ones = 0          # Nombre de bits 1 reçus
@@ -32,7 +34,15 @@ class Node:
     def receive_message(self, bit):
         """
         Reçoit un bit et met à jour les statistiques.
+        Si le buffer est plein, retire le bit le plus ancien avant d'ajouter le nouveau bit.
         """
+        # Si le buffer est plein, on retire le bit le plus ancien
+        if len(self.received_bits) >= self.buffer_size:
+            oldest_bit = self.received_bits.pop(0)
+            if oldest_bit == 1:
+                self.count_ones -= 1
+            self.count_total -= 1
+        # Met à jour les statistiques
         self.received_bits.append(bit)
         self.count_total += 1
         if bit == 1:
@@ -47,23 +57,24 @@ class Node:
         if self.count_total == 0:
             return 0  # Pas de donnée statistique, on renvoie 0 par défaut.
         
-        # Calcul de la probabilité d'obtenir un bit 1
-        prob_one = self.count_ones / self.count_total
+        # Calcul de la probabilité d'obtenir un bit 1 sur le buffer size 
+        # si le buffer est plein, sinon sur le nombre total de bits reçus.
+        prob_one = self.count_ones / self.buffer_size if self.count_total >= self.buffer_size else self.count_ones / self.count_total
         bit_guess = 1 if random.random() < prob_one else 0
         return bit_guess
 
 
-def simulate_communication(p_alice=0.5, p_bob=0.5, steps=20):
+def simulate_communication(p_alice=0.5, p_bob=0.5, steps=20 , buffer_size=20):
     """
     Lance la simulation d'une communication entre Alice et Bob
     sur un nombre de 'steps'(nombre de messages) défini.
     Bob sera déconnecté à une étape aléatoire entre 1 et 'steps'.
     """
-    alice = Node("Alice", p_alice)
-    bob   = Node("Bob", p_bob)
+    alice = Node("Alice", p_alice, buffer_size)
+    bob   = Node("Bob", p_bob, buffer_size)
     
     # Choisit une étape aléatoire où Bob sera déconnecté
-    disconnect_step = random.randint(50, steps)
+    disconnect_step = random.randint(0, steps)
     
     # Liste pour stocker les bits réels envoyés par Bob
     bob_sent_bits = []
@@ -114,8 +125,8 @@ def simulate_communication(p_alice=0.5, p_bob=0.5, steps=20):
             print(f"Bob is disconnected; Alice guessed using ratio {ratio_str}: {guessed_bit}")
     
     print("\n--- Simulation ends ---")
-    print(f"Alice received {alice.count_total} bits from Bob (1s: {alice.count_ones}).")
-    print(f"Bob received {bob.count_total} bits from Alice (1s: {bob.count_ones}).")
+    #print(f"Alice received {alice.count_total} bits from Bob (1s: {alice.count_ones}).")
+    #print(f"Bob received {bob.count_total} bits from Alice (1s: {bob.count_ones}).")
     
     # Rapport final
     print("\nDetailed report:")
@@ -130,6 +141,7 @@ if __name__ == "__main__":
     simulate_communication(
         p_alice=0.8,   # Probabilité  Alice
         p_bob=0.5,     # Probabilité  Bob
-        steps=100       # Nombre total des messages échangés(chaque message est un bit)
+        steps=100,       # Nombre total des messages échangés(chaque message est un bit)
+        buffer_size=20  # Taille du buffer
     )
 

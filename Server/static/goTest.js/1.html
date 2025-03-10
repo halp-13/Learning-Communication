@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoJS Graph Editor</title>
+    <script src="https://unpkg.com/gojs/release/go.js"></script>
+    <style>
+        #myDiagramDiv {
+            width: 100%;
+            height: 600px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h2>Éditeur de Graphe avec GoJS</h2>
+    <div id="myDiagramDiv"></div>
+    <button onclick="addNode()">Ajouter un Noeud</button>
+    <button onclick="updateNode()">Mettre à jour un Noeud</button>
+    <select name="nodes" id="nodes"></select>
+    <button onclick="_deleteNode()">Supprimer un Noeud</button>
+    <button onclick="_deleteLink()">Supprimer un Lien</button>
+    <button onclick="alice_bob()">Alice et Bob</button>
+    <button onclick="alice_n_bob()">Alice et N Bob</button>
+    <button onclick="alice_mnist()">Alice et MNIST</button>
+    <button onclick="mis()">MIS</button>
+    
+    <script>
+        var $ = go.GraphObject.make;
+        var myDiagram =
+            $(go.Diagram, "myDiagramDiv",
+                {
+                    "undoManager.isEnabled": true,
+                    layout: $(go.ForceDirectedLayout)  // Ajout d'un layout pour éviter la superposition
+                });
+
+        myDiagram.nodeTemplate =
+            $(go.Node, "Auto",
+                { locationSpot: go.Spot.Center, click: nodeClicked },
+                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                $(go.Shape, "RoundedRectangle",
+                    { fill: "lightblue" },
+                    new go.Binding("fill", "color")),
+                $(go.TextBlock,
+                    { margin: 8 },
+                    new go.Binding("text", "key"))
+            );
+
+        myDiagram.linkTemplate =
+            $(go.Link,
+                { routing: go.Link.Orthogonal, corner: 5, click: linkClicked },
+                $(go.Shape, new go.Binding("stroke", "color"))
+            );
+
+        // myDiagram.model = new go.GraphLinksModel(
+        //     [
+        //         { key: "Alice", loc: "0 0", color: "lightblue" },
+        //         { key: "Bob", loc: "100 0", color: "lightblue" }
+        //     ],
+        //     [
+        //         { from: "Alice", to: "Bob", color: "black" }
+        //     ]
+        // );
+            
+        function addNode(name) {
+            // var newNodeKey = "N" + (myDiagram.model.nodeDataArray.length + 1);
+            var newNodeKey = name;
+            var x = Math.random() * 400;
+            var y = Math.random() * 400;
+            myDiagram.startTransaction("add node");
+            myDiagram.model.addNodeData({ key: newNodeKey, loc: x + " " + y, color: "lightblue" });
+            myDiagram.model.addLinkData({ from: "Alice", to: newNodeKey, color: "black" }); // Relier chaque nouveau nœud à A
+            // myDiagram.model.addLinkData({ from: newNodeKey, to: "A", color: "black" }); // Ajouter un lien retour pour rendre le graphe non orienté
+            myDiagram.commitTransaction("add node");
+
+            // Ajouter le nouveau nœud à la liste des nœuds
+            var option = document.createElement("option");
+            option.text = newNodeKey;
+            document.getElementById("nodes").add(option);
+        }
+
+        function updateNode(nodeKey, color) {
+            var node = myDiagram.model.findNodeDataForKey(nodeKey);
+            if (node) {
+                myDiagram.startTransaction("update node");
+                myDiagram.model.setDataProperty(node, "color", color || "lightgreen");
+                myDiagram.commitTransaction("update node");
+            } else {
+                alert("Nœud introuvable");
+            }
+        }
+
+        function deleteNode(nodeKey) {
+            var node = myDiagram.model.findNodeDataForKey(nodeKey);
+            if (node) {
+                myDiagram.startTransaction("delete node");
+                myDiagram.model.removeNodeData(node);
+                myDiagram.commitTransaction("delete node");
+            } else {
+                alert("Nœud introuvable");
+            }
+        }
+
+        function findLink(fromNodeKey, toNodeKey) {
+            return myDiagram.model.linkDataArray.find(link => 
+                (link.from === fromNodeKey && link.to === toNodeKey) || 
+                (link.from === toNodeKey && link.to === fromNodeKey));
+        }
+
+        function deleteLink(fromNodeKey, toNodeKey) {
+            var link = findLink(fromNodeKey, toNodeKey);
+            if (link) {
+                myDiagram.startTransaction("delete link");
+                myDiagram.model.removeLinkData(link);
+                myDiagram.commitTransaction("delete link");
+            } else {
+                alert("Lien introuvable");
+            }
+        }
+
+        function nodeClicked(e, node) {
+            // updateNode(node.data.key);
+        }
+
+        function updateLink(fromNodeKey, toNodeKey, color) {
+            var link = findLink(fromNodeKey, toNodeKey);
+            if (link) {
+                myDiagram.startTransaction("update link");
+                myDiagram.model.setDataProperty(link, "color", color || "red");
+                myDiagram.commitTransaction("update link");
+            } else {
+                alert("Lien introuvable");
+            }
+        }
+     
+        function linkClicked(e, link) {
+            // alert("Lien cliqué entre " + link.data.from + " et " + link.data.to);
+            // updateLink(link.data.from, link.data.to, "red");
+        }
+     
+        _deleteNode = function() {
+            var nodeKey = document.getElementById("nodes").value;
+            deleteNode(nodeKey);
+        }
+        _deleteLink = function() {
+            var fromNodeKey = "Alice";
+            var toNodeKey = document.getElementById("nodes").value;
+            deleteLink(fromNodeKey, toNodeKey);
+        }
+
+        
+
+        function alice_bob() {
+            myDiagram.model = new go.GraphLinksModel(
+                [
+                    { key: "Alice", loc: "0 0", color: "lightblue" },
+                    { key: "Bob", loc: "100 0", color: "lightblue" }
+                ],
+                [
+                    { from: "Alice", to: "Bob", color: "black" }
+                ]
+            );
+        }
+
+        function alice_n_bob() {
+            myDiagram.model = new go.GraphLinksModel(
+                [
+                    { key: "Alice", loc: "0 0", color: "lightblue" },
+                    
+                ],
+              
+            );
+            for (var i = 0; i < 10; i++) {
+                var name = "Bob-" + i;
+                addNode(name);
+            }
+        }
+
+        function alice_mnist() {
+            myDiagram.model = new go.GraphLinksModel(
+                [
+                    { key: "Alice", loc: "0 0", color: "lightblue" },
+                    
+                ],
+              
+            );
+            for (var i = 0; i < 100; i++) {
+                var name = "Bob-" + i;
+                addNode(name);
+            }
+        }
+        
+    </script>
+</body>
+</html>

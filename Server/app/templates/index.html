@@ -306,7 +306,6 @@
     var alice = null;
     var bob = null;
 
-
     class Node {
 
         constructor(x, y, r, color, name, p_one = 0.5) {
@@ -439,7 +438,6 @@
     }
 
     // logic
-
     function choice(liste) {
 
         let i = Math.floor(Math.random() * liste.length);
@@ -621,6 +619,7 @@
 
     function MIS(nb_bob = 100) {
         // DRAW NODES IN NETWORK LIK GRAPH
+        nodes = [];
 
         for (var i = 0; i < nb_bob; i++) {
             var x = Math.random() * canvas.width;
@@ -642,16 +641,9 @@
     }
 
     // listerners and resize canvas
-
-
     window.addEventListener('resize', resizeCanvas);
 
-
-
-
-
     function changeMode() {
-
 
         var e = document.getElementById("mode-select");
         var mode = e.options[e.selectedIndex].value;
@@ -706,6 +698,12 @@
             // redraw();
             title.innerHTML = 'MIS';
         }
+    }
+
+    function update_nb_bob() {
+        var nb_bob = document.getElementById('nb_bob').value;
+        alice_n_bob(nb_bob);
+        redraw();
     }
 
     (() => {

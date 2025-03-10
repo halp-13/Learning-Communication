@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoJS Graph Editor</title>
+    <script src="https://unpkg.com/gojs/release/go.js"></script>
+    <style>
+        #myDiagramDiv {
+            width: 100%;
+            height: 600px;
+            border: 1px solid black;
+        }
+
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Éditeur de Graphe avec GoJS</h2>
+    <div id="myDiagramDiv"></div>
+    <button onclick="addNode()">Ajouter un Noeud</button>
+    <button onclick="updateNode()">Mettre à jour un Noeud</button>
+    <select name="nodes" id="nodes"></select>
+    <button onclick="_deleteNode()">Supprimer un Noeud</button>
+    <button onclick="_deleteLink()">Supprimer un Lien</button>
+    <button onclick="alice_bob()">Alice et Bob</button>
+    <button onclick="alice_n_bob()">Alice et N Bob</button>
+    <button onclick="alice_mnist()">Alice et MNIST</button>
+    <button onclick="mis()">MIS</button>
+    <div id="loader" style="display: none;">
+        <div
+            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+            <p>Création des nœuds en cours...</p>
+            <progress id="progressBar" value="0" max="100"></progress>
+            <span id="progressText">0%</span>
+        </div>
+    </div>
+    <script>
+        var $ = go.GraphObject.make;
+        var myDiagram =
+            $(go.Diagram, "myDiagramDiv",
+                {
+                    "undoManager.isEnabled": true,
+                    // layout: $(go.ForceDirectedLayout),  // Ajout d'un layout pour éviter la superposition
+                    "panningTool.isEnabled": false,
+                    isReadOnly: false, // Permet de cliquer sur les cellules
+                    // allowZoom: false,
+                    // allowSelect: false,
+                    initialAutoScale: go.AutoScale.Uniform
+                });
+
+
+
+        // myDiagram.model = new go.GraphLinksModel(
+        //     [
+        //         { key: "Alice", loc: "0 0", color: "lightblue" },
+        //         { key: "Bob", loc: "100 0", color: "lightblue" }
+        //     ],
+        //     [
+        //         { from: "Alice", to: "Bob", color: "black" }
+        //     ]
+        // );
+
+        function addNode(name) {
+            // var newNodeKey = "N" + (myDiagram.model.nodeDataArray.length + 1);
+            var newNodeKey = name;
+            var x = Math.random() * 400;
+            var y = Math.random() * 400;
+            myDiagram.startTransaction("add node");
+            myDiagram.model.addNodeData({ key: newNodeKey, loc: x + " " + y, color: "lightblue" });
+            myDiagram.model.addLinkData({ from: "Alice", to: newNodeKey, color: "black" }); // Relier chaque nouveau nœud à A
+            // myDiagram.model.addLinkData({ from: newNodeKey, to: "A", color: "black" }); // Ajouter un lien retour pour rendre le graphe non orienté
+            myDiagram.commitTransaction("add node");
+
+            // Ajouter le nouveau nœud à la liste des nœuds
+            var option = document.createElement("option");
+            option.text = newNodeKey;
+            document.getElementById("nodes").add(option);
+        }
+
+        function updateNode(nodeKey, color) {
+            var node = myDiagram.model.findNodeDataForKey(nodeKey);
+            if (node) {
+                myDiagram.startTransaction("update node");
+                myDiagram.model.setDataProperty(node, "color", color || "lightgreen");
+                myDiagram.commitTransaction("update node");
+            } else {
+                alert("Nœud introuvable");
+            }
+        }
+
+        function deleteNode(nodeKey) {
+            var node = myDiagram.model.findNodeDataForKey(nodeKey);
+            if (node) {
+                myDiagram.startTransaction("delete node");
+                myDiagram.model.removeNodeData(node);
+                myDiagram.commitTransaction("delete node");
+            } else {
+                alert("Nœud introuvable");
+            }
+        }
+
+        function findLink(fromNodeKey, toNodeKey) {
+            return myDiagram.model.linkDataArray.find(link =>
+                (link.from === fromNodeKey && link.to === toNodeKey) ||
+                (link.from === toNodeKey && link.to === fromNodeKey));
+        }
+
+        function deleteLink(fromNodeKey, toNodeKey) {
+            var link = findLink(fromNodeKey, toNodeKey);
+            if (link) {
+                myDiagram.startTransaction("delete link");
+                myDiagram.model.removeLinkData(link);
+                myDiagram.commitTransaction("delete link");
+            } else {
+                alert("Lien introuvable");
+            }
+        }
+
+        function nodeClicked(e, node) {
+            // updateNode(node.data.key);
+        }
+
+        function updateLink(fromNodeKey, toNodeKey, color) {
+            var link = findLink(fromNodeKey, toNodeKey);
+            if (link) {
+                myDiagram.startTransaction("update link");
+                myDiagram.model.setDataProperty(link, "color", color || "red");
+                myDiagram.commitTransaction("update link");
+            } else {
+                alert("Lien introuvable");
+            }
+        }
+
+        function linkClicked(e, link) {
+            // alert("Lien cliqué entre " + link.data.from + " et " + link.data.to);
+            // updateLink(link.data.from, link.data.to, "red");
+        }
+
+        _deleteNode = function () {
+            var nodeKey = document.getElementById("nodes").value;
+            deleteNode(nodeKey);
+        }
+        _deleteLink = function () {
+            var fromNodeKey = "Alice";
+            var toNodeKey = document.getElementById("nodes").value;
+            deleteLink(fromNodeKey, toNodeKey);
+        }
+
+
+
+        function alice_bob() {
+            myDiagram.layout = $(go.ForceDirectedLayout);
+            // console.log({ layout: myDiagram.layout });
+
+            myDiagram.nodeTemplate =
+                $(go.Node, "Auto",
+                    { locationSpot: go.Spot.Center, click: nodeClicked },
+                    new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                    $(go.Shape, "RoundedRectangle",
+                        { fill: "lightblue" },
+                        new go.Binding("fill", "color")),
+                    $(go.TextBlock,
+                        { margin: 8 },
+                        new go.Binding("text", "key"))
+                );
+
+            myDiagram.linkTemplate =
+                $(go.Link,
+                    { routing: go.Link.Orthogonal, corner: 5, click: linkClicked },
+                    $(go.Shape, new go.Binding("stroke", "color"))
+                );
+            myDiagram.model = new go.GraphLinksModel(
+                [
+                    { key: "Alice", loc: "0 0", color: "lightblue" },
+                    { key: "Bob", loc: "100 0", color: "lightblue" }
+                ],
+                [
+                    { from: "Alice", to: "Bob", color: "black" }
+                ]
+            );
+        }
+
+        function alice_mnist() {
+
+            // remove diagram layout CircularLayout Sample
+            myDiagram.layout = $(go.Layout);
+            // console.log({ layout: myDiagram.layout });
+            const rows = 25, cols = 25; // Taille de la grille
+            const nodeSize = 100; // Taille d'une cellule
+
+            myDiagram.nodeTemplate = $(
+                go.Node,
+                "Auto",
+                { locationSpot: go.Spot.Center },
+                $(
+                    go.Shape,
+                    "Rectangle",
+                    {
+                        fill: "white", // Couleur par défaut
+                        stroke: "#A2A2A2", // Couleur de la bordure
+                        strokeWidth: 1,
+                        width: nodeSize,
+                        height: nodeSize
+                    },
+                    new go.Binding("fill", "color") // Lie la couleur à la propriété "color"
+                ),
+                {
+                    click: (e, node) => {
+                        // Changer la couleur de la cellule au clic
+                        const colors = ["white", "lightblue", "lightgreen", "pink", "yellow"];
+                        const currentColor = node.data.color || "white";
+                        const nextColor = colors[(colors.indexOf(currentColor) + 1) % colors.length] || colors[0];
+                        myDiagram.model.setDataProperty(node.data, "color", nextColor);
+                    }
+                }
+            );
+
+            // Création de la grille
+            const nodeDataArray = [];
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    nodeDataArray.push({
+                        key: `${i}-${j}`, // Identifiant unique
+                        loc: new go.Point(j * nodeSize, i * nodeSize), // Position dans la grille
+                        color: "green" // Couleur initiale
+                    });
+                }
+            }
+
+            // Appliquer le modèle
+            myDiagram.model = new go.GraphLinksModel({ nodeDataArray });
+        }
+
+
+        function showLoader() {
+            document.getElementById("loader").style.display = "block";
+        }
+
+        function hideLoader() {
+            document.getElementById("loader").style.display = "none";
+        }
+
+        function updateProgress(progress) {
+            document.getElementById("progressBar").value = progress;
+            document.getElementById("progressText").innerText = progress + "%";
+        }
+
+        function alice_n_bob() {
+
+
+            myDiagram.layout = $(go.ForceDirectedLayout);
+            myDiagram.nodeTemplate =
+                $(go.Node, "Auto",
+                    { locationSpot: go.Spot.Center, click: nodeClicked },
+                    new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                    $(go.Shape, "RoundedRectangle",
+                        { fill: "lightblue" },
+                        new go.Binding("fill", "color")),
+                    $(go.TextBlock,
+                        { margin: 8 },
+                        new go.Binding("text", "key"))
+                );
+
+            myDiagram.linkTemplate =
+                $(go.Link,
+                    { routing: go.Link.Orthogonal, corner: 5, click: linkClicked },
+                    $(go.Shape, new go.Binding("stroke", "color"))
+                );
+   
+            myDiagram.model = new go.GraphLinksModel([{ key: "Alice", loc: "0 0", color: "lightblue" }]);
+            showLoader();
+            let totalNodes = 10;
+            let createdNodes = 0;
+
+            function addNodeWithProgress() {
+                if (createdNodes < totalNodes) {
+                    var name = "Bob-" + createdNodes;
+                    addNode(name);
+                    createdNodes++;
+                    updateProgress((createdNodes / totalNodes) * 100);
+                    setTimeout(addNodeWithProgress, 100); // Ajoute un délai pour simuler une création plus lente
+                } else {
+                    hideLoader();
+                }
+            }
+
+            addNodeWithProgress();
+        }
+
+        // function alice_mnist() {
+        //     myDiagram.model = new go.GraphLinksModel([{ key: "Alice", loc: "0 0", color: "lightblue" }]);
+        //     showLoader();
+        //     let totalNodes = 784;
+        //     let createdNodes = 0;
+
+        //     function addNodeWithProgress() {
+        //         if (createdNodes < totalNodes) {
+        //             var name = "Bob-" + createdNodes;
+        //             addNode(name);
+        //             createdNodes++;
+        //             updateProgress((createdNodes / totalNodes) * 100);
+        //             setTimeout(addNodeWithProgress, 10); // Ajoute un délai pour simuler une création plus lente
+        //         } else {
+        //             hideLoader();
+        //         }
+        //     }
+
+        //     addNodeWithProgress();
+        // }
+    </script>
+</body>
+
+</html>

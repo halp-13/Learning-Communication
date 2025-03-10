@@ -38,7 +38,7 @@ class Node:
         """
         # Si le buffer est plein, on retire le bit le plus ancien
         if len(self.received_bits) >= self.buffer_size:
-            oldest_bit = self.received_bits.pop(0)
+            oldest_bit = self.received_bits.pop(0) # Retire le bit le plus ancien
             if oldest_bit == 1:
                 self.count_ones -= 1
             self.count_total -= 1

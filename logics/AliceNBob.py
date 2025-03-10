@@ -8,13 +8,14 @@ class Node:
     Chaque nœud peut envoyer et recevoir des bits (0 ou 1).
     Il peut également être déconnecté.
     """
-    def __init__(self, name, p_one):
+    def __init__(self, name, p_one, buffer_size=20):
         """
         name: Nom du nœud (ex: 'Alice' ou 'Bob_1')
         p_one: Probabilité qu'un message envoyé par ce nœud soit un bit 1
         """
         self.name = name
         self.p_one = p_one
+        self.buffer_size = buffer_size
         self.is_disconnected = False
         self.received_bits = []
         self.count_ones = 0
@@ -27,6 +28,14 @@ class Node:
         return bit
     
     def receive_message(self, bit):
+
+        # Si le buffer est plein, on retire le bit le plus ancien
+        if len(self.received_bits) >= self.buffer_size:
+            oldest_bit = self.received_bits.pop(0) # Retire le bit le plus ancien
+            if oldest_bit == 1:
+                self.count_ones -= 1
+            self.count_total -= 1
+        # Met à jour les statistiques
         self.received_bits.append(bit)
         self.count_total += 1
         if bit == 1:
@@ -34,12 +43,16 @@ class Node:
     
     def guess_message(self):
         """
-        Devine un bit lorsque l'autre nœud est déconnecté.
+        Devine un bit lorsque l'autre nœud est déconnecté et ne renvoie rien.
+        La probabilité d'être 1 = (count_ones / count_total).
+        Retourne 0 par défaut si aucun bit n'a été reçu (count_total=0).
         """
         if self.count_total == 0:
             return 0
         
-        prob_one = self.count_ones / self.count_total
+        # Calcul de la probabilité d'obtenir un bit 1 sur le buffer size 
+        # si le buffer est plein, sinon sur le nombre total de bits reçus.
+        prob_one = self.count_ones / self.buffer_size if self.count_total >= self.buffer_size else self.count_ones / self.count_total
         bit_guess = 1 if random.random() < prob_one else 0
         return bit_guess
 
@@ -47,6 +60,7 @@ class Node:
         return {
             "name": self.name,
             "p_one": self.p_one,
+            "buffer_size": self.buffer_size,
             "is_disconnected": self.is_disconnected,
             "received_bits": self.received_bits,
             "count_ones": self.count_ones,
@@ -58,8 +72,8 @@ class Alice(Node):
     Version améliorée d'Alice qui utilise un modèle d'apprentissage
     pour prédire les bits des Bobs déconnectés.
     """
-    def __init__(self, p_one):
-        super().__init__("Alice", p_one)
+    def __init__(self, p_one, buffer_size=20):
+        super().__init__("Alice", p_one, buffer_size)
         self.bob_history = {}
         self.model = LogisticRegression(random_state=42)
         self.is_model_trained = False
@@ -72,11 +86,20 @@ class Alice(Node):
         if bob_id not in self.bob_history:
             self.bob_history[bob_id] = []
         
+        # Applique aussi la limitation de taille de buffer pour l'historique de chaque Bob
+        if len(self.bob_history[bob_id]) >= self.buffer_size:
+            self.bob_history[bob_id].pop(0)
+
         self.bob_history[bob_id].append(bit)
         
         features = [bob_id, len(self.bob_history[bob_id])]
         self.training_data.append(features)
         self.training_labels.append(bit)
+
+        # Limite aussi la taille des données d'entraînement pour garder les plus récentes
+        if len(self.training_data) > self.buffer_size * 10:  # Buffer plus grand pour l'apprentissage
+            self.training_data.pop(0)
+            self.training_labels.pop(0)
     
     def train_model(self):
         """
@@ -114,12 +137,12 @@ class Alice(Node):
             return self.guess_message()
 
 
-def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, disconnect_percentage=20, message_length=100):
+def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, disconnect_percentage=20, message_length=100, buffer_size=20):
     """
     Lance une simulation améliorée avec plusieurs Bobs.
     """
-    alice = Alice(p_alice)
-    bobs = [Node(f"Bob_{i}", p_bob) for i in range(num_bobs)]
+    alice = Alice(p_alice, buffer_size)
+    bobs = [Node(f"Bob_{i}", p_bob, buffer_size) for i in range(num_bobs)]
     
     num_disconnected = int(num_bobs * disconnect_percentage / 100)
     disconnected_bobs = random.sample(range(num_bobs), num_disconnected)
@@ -137,6 +160,7 @@ def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, discon
     print(f"Total number of Bobs: {num_bobs}")
     print(f"Number of Bobs to be disconnected: {num_disconnected} ({disconnect_percentage}%)")
     print(f"Message length: {message_length} bits\n")
+    print(f"Buffer size: {buffer_size}\n")
     
     for bob_id in range(num_bobs):
         results["real_bits"][bob_id] = []
@@ -235,5 +259,6 @@ if __name__ == "__main__":
         p_bob=0.3,
         num_bobs=784,
         disconnect_percentage=15, # 15% des Bobs seront déconnectés
-        message_length=100
+        message_length=100,
+        buffer_size=20
     )

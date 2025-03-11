@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container-fluid h-100">
     <div class="row justify-content-center h-100">
-        <div class="col-9 h-100 p-0 ">
+        <div class="col-8 h-100 p-0 ">
             <div class="card h-100 border-0 rounded-0">
                 <div class="card-header rounded-0" style="background-color: #4c4c4c;">
                     <h4 class="card-title text-center" id="Titre">--------------</h4>
@@ -25,7 +25,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-3 h-100 p-0 ">
+        <div class="col-4 h-100 p-0 ">
             <div class="card h-100 border-0 rounded-0" style="background-color: #4c4c4c;">
                 <div class="card-body d-flex flex-column h-100">
                     <div class="card">
@@ -60,7 +60,6 @@
                                                     <option value="">----------</option>
                                                     <option value="rd">Random</option>
                                                     <option value="alice_n_bob">Serie</option>
-
                                                 </select>
                                             </td>
 
@@ -78,6 +77,19 @@
                                                 <input type="number" name="ratio_alice" id="ratio_alice" value="0.2">
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <th scope="row">Message length</th>
+                                            <td>
+                                                <input type="number" name="message_length" id="message_length" value="10">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">disconnect_percentage</th>
+                                            <td>
+                                                <input type="number" name="disconnect_percentage" id="disconnect_percentage" value="2">
+
+                                            </td>
+                                        </tr>
                                         <!-- <tr>
                                         <th scope="row">2</th>
                                         <td>Jacob</td>
@@ -91,45 +103,25 @@
                                     </tbody>
                                 </table>
                                 <!-- <button onclick="bob_alice()">Run</button> -->
-                                <button type="button" id="alice_bob_btn" onclick="Simulate_alice_bob()"
+                                <button type="button" id="alice_bob_btn" onclick="simulate_alice_bob()"
                                     class="btn btn-success m-1">Start</button>
                             </div>
                         </div>
                         <div class=" d-flex p-1 flex-column" style="flex: 1;">
-
-
-                            <!-- <textarea id="console_alice_bob" class="console" style="height: 100%;width: 100%;" readonly></textarea> -->
-                            <table style="flex: 1;">
+                            <table class="table" style="flex: 1;">
                                 <thead>
 
                                     <tr>
+                                        <td width="20%" >Step</td>
                                         <td width="20%" class="text-center">Alice</td>
                                         <td width="20%" class="text-center">Bob</td>
                                         <td width="20%" class="text-center">Guess</td>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td  colspan="3" class="flex" >
-                                            <textarea id="console_alice_bob_alice" class="console"
-                                                style="height: 100%;width: 100%;" readonly></textarea>
-                                        </td>
-                                 
-                                    </tr>
-                                </tbody>
-
-                                <tfoot>
-                                    <tr>
-                                        <td>
-                                            Accuracy
-                                        </td>
-                                        <td colspan="2">
-                                            70%
-                                        </td>
-                                      
-                                    </tr>
-
+                            
                             </table>
+                            <textarea id="console_alice_bob_alice" class="console"
+                            style="height: 100%;width: 100%;" readonly></textarea>
                         </div>
                     </div>
                     <div id="box_alice_n_bob" class="flex-column  box_options h-100 d-none">
@@ -190,7 +182,7 @@
                                       </tr> -->
                                     </tbody>
                                 </table>
-                                <button onclick="init_alice_n_bob()">Run</button>
+                                <button onclick="simulate_alice_n_bob()">Run</button>
                             </div>
                         </div>
                         <div class=" d-flex p-1 flex-column" style="flex: 1;">
@@ -288,7 +280,7 @@
 
     <div id="loader" style="display: none;">
         <div
-            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);color: black; " >
             <p>Création des nœuds en cours...</p>
             <progress id="progressBar" value="0" max="100"></progress>
             <span id="progressText">0%</span>
@@ -304,9 +296,8 @@
     // });
     const canevas_box = document.getElementById('canvasBox');
     var $ = go.GraphObject.make;
-    var myDiagram =
-        $(go.Diagram, "myDiagramDiv",
-            {
+
+    var myDiagram =$(go.Diagram, "myDiagramDiv",{
                 "undoManager.isEnabled": true,
                 // layout: $(go.ForceDirectedLayout),  // Ajout d'un layout pour éviter la superposition
                 "panningTool.isEnabled": false,
@@ -314,12 +305,7 @@
                 // allowZoom: false,
                 // allowSelect: false,
                 initialAutoScale: go.AutoScale.Uniform
-            });
-
-
-
-
-
+    });
 
     function addNode(name) {
         // var newNodeKey = "N" + (myDiagram.model.nodeDataArray.length + 1);
@@ -331,7 +317,6 @@
         myDiagram.model.addLinkData({ from: "Alice", to: newNodeKey, color: "black" }); // Relier chaque nouveau nœud à A
         // myDiagram.model.addLinkData({ from: newNodeKey, to: "A", color: "black" }); // Ajouter un lien retour pour rendre le graphe non orienté
         myDiagram.commitTransaction("add node");
-
         // Ajouter le nouveau nœud à la liste des nœuds
         var option = document.createElement("option");
         option.text = newNodeKey;
@@ -344,6 +329,7 @@
             myDiagram.startTransaction("update node");
             myDiagram.model.setDataProperty(node, "color", color || "lightgreen");
             myDiagram.commitTransaction("update node");
+            console.log("update node"); 
         } else {
             alert("Nœud introuvable");
         }
@@ -401,13 +387,12 @@
         var nodeKey = document.getElementById("nodes").value;
         deleteNode(nodeKey);
     }
+
     _deleteLink = function () {
         var fromNodeKey = "Alice";
         var toNodeKey = document.getElementById("nodes").value;
         deleteLink(fromNodeKey, toNodeKey);
     }
-
-
 
     function alice_bob() {
         myDiagram.layout = $(go.ForceDirectedLayout);
@@ -439,7 +424,7 @@
                 { from: "Alice", to: "Bob", color: "black" }
             ]
         );
-        fetch_alice_bob();
+        
     }
 
     function alice_mnist() {
@@ -493,7 +478,6 @@
         myDiagram.model = new go.GraphLinksModel({ nodeDataArray });
     }
 
-
     function showLoader() {
         document.getElementById("loader").style.display = "block";
     }
@@ -507,7 +491,7 @@
         document.getElementById("progressText").innerText = progress + "%";
     }
 
-    function alice_n_bob(totalNodes = 10) {
+     function alice_n_bob(totalNodes = 10) {
 
 
         myDiagram.layout = $(go.ForceDirectedLayout);
@@ -534,7 +518,7 @@
 
         let createdNodes = 0;
 
-        function addNodeWithProgress() {
+        async function addNodeWithProgress() {
             if (createdNodes < totalNodes) {
                 var name = "Bob-" + createdNodes;
                 addNode(name);
@@ -543,217 +527,15 @@
                 setTimeout(addNodeWithProgress, 100); // Ajoute un délai pour simuler une création plus lente
             } else {
                 hideLoader();
+                await fetch_alice_n_bob();
+
             }
         }
 
         addNodeWithProgress();
     }
 
-
-
-
-    var nodes = [];
-    var alice = null;
-    var bob = null;
-
-    class Node {
-
-        constructor(x, y, r, color, name, p_one = 0.5) {
-            this.x = x;
-            this.y = y;
-            this.r = r;
-            this.color = color;
-            this.name = name;
-            this.p_one = p_one;
-            this.isDisconnected = false; // Statut de déconnexion
-            this.receivedBits = []; // Bits reçus
-            this.countOnes = 0; // Nombre de bits 1 reçus
-            this.countTotal = 0; // Nombre total de bits reçus
-            this.generateBits = [];
-        }
-
-        sendMessage() {
-            /**
-             * Envoie un bit (0 ou 1) si le nœud n'est pas déconnecté.
-             * Retourne null si le nœud est déconnecté.
-             */
-            // if (this.isDisconnected) {
-            //     return null;
-            // }
-
-            let len = this.generateBits.length;
-            if (len === 0) {
-                // let bit =choice([0, 1]);
-                let bit = 0;
-                this.generateBits.push(bit);
-                return bit;
-            }
-
-            // fait en sorte le bit soit 1 avec une probabilité p_one
-
-            let sum_one = this.generateBits.reduce((acc, val) => acc + val, 0);
-            let prob_one = sum_one / len;
-
-            let bit = prob_one <= this.p_one ? 1 : 0;
-            this.generateBits.push(bit);
-            return bit;
-
-        }
-
-        receiveMessage(bit) {
-            /**
-             * Reçoit un bit et met à jour les statistiques.
-             */
-            this.receivedBits.push(bit);
-            this.countTotal += 1;
-            if (bit === 1) {
-                this.countOnes += 1;
-            }
-        }
-
-        guessMessage() {
-
-            if (this.countTotal === 0) {
-                // let bit = choice([0, 1]);
-                let bit = 0;
-                this.receivedBits.push(bit);
-                return bit;
-            }
-
-            let probOne_gess = this.countOnes / this.countTotal;
-
-
-
-            let len = this.receivedBits.length;
-            let sum_one = this.receivedBits.reduce((acc, val) => acc + val, 0);
-
-            let prob_one = sum_one / len;
-
-            let guessedBit = prob_one <= probOne_gess ? 1 : 0;
-            this.receivedBits.push(guessedBit);
-
-
-            return guessedBit;
-        }
-    }
-
-    // Canvas
-
-
-
-
-
-    // logic
-    function choice(liste) {
-
-        let i = Math.floor(Math.random() * liste.length);
-        return liste[i]; // Retourne l'élément choisi
-    }
-
-    async function simulateCommunication(p_alice = 0.5, p_bob = 0.5, steps = 20) {
-
-        let alice = new Node("Alice", p_alice);
-        let bob = new Node("Bob", p_bob);
-
-        let disconnectStep = Math.floor(Math.random() * (steps - 1)) + 1;
-
-        let bobSentBits = [];
-        let aliceGuessedBits = [];
-
-        console.log("\n--- Simulation starts ---");
-        console.log(`Alice sends '1' with probability ${p_alice}.`);
-        console.log(`Bob sends '1' with probability ${p_bob}.`);
-        console.log(`Bob will be disconnected at step: ${disconnectStep}.\n`);
-
-        let console_alice_bob_alice = document.getElementById('console_alice_bob_alice');
-        let width_console_alice = console_alice_bob_alice.clientWidth;
-        let case_width_alice = (width_console_alice / 3) - 3;
-        console_alice_bob_alice.style.wordSpacing = case_width_alice + 'px';
-
-
-        // add spacing word based on width
-
-        let console_alice_bob_bob = document.getElementById('console_alice_bob_bob');
-        let width_console_bob = console_alice_bob_bob.clientWidth;
-        let case_width_bob = (width_console_bob / 2);
-        console_alice_bob_bob.style.wordSpacing = case_width_bob + 'px';
-
-
-
-        for (let step = 1; step <= steps; step++) {
-            console.log(`[Step ${step}]`);
-            // console_alice_bob.value += `[Step ${step}]\n`;
-            let alice_line = Array(3).fill(" ");
-            let bob_line = Array(2).fill(" ");
-
-            if (step === disconnectStep && !bob.isDisconnected) {
-                bob.isDisconnected = true;
-                console.log("** Bob is now disconnected! **");
-            }
-
-            // -- Alice --> Bob --
-            let bitFromAlice = alice.sendMessage();
-            let bitFromBob = bob.sendMessage();
-
-            alice_line[0] = bitFromAlice;
-            bob_line[0] = bitFromBob;
-
-
-
-
-            if (!bob.isDisconnected && !alice.isDisconnected) {
-                bob.receiveMessage(bitFromAlice);
-                alice.receiveMessage(bitFromBob);
-
-                bob_line[1] = bitFromAlice;
-                alice_line[1] = bitFromBob;
-                bobSentBits.push(bitFromAlice);
-
-            }
-            else {
-                bob_line[1] = ".";
-                alice_line[1] = ".";
-            }
-
-            let guessedBit = alice.guessMessage();
-            aliceGuessedBits.push(guessedBit);
-            alice_line[2] = guessedBit;
-
-            let ratioStr = alice.countTotal ? `${alice.countOnes}/${alice.countTotal}` : "0";
-            console.log(`Bob is disconnected; Alice guessed using ratio ${ratioStr}: ${guessedBit}`);
-
-
-            console_alice_bob_alice.value += alice_line.join(' ') + '\n';
-            console_alice_bob_bob.value += bob_line.join(' ') + '\n';
-
-            // sleep 
-            console_alice_bob_alice.scrollTop = console_alice_bob_alice.scrollHeight;
-            console_alice_bob_bob.scrollTop = console_alice_bob_bob.scrollHeight;
-            await new Promise(r => setTimeout(r, 1000));
-            // scroll to bottom
-        }
-
-        // console.log("\n--- Simulation ends ---");
-        // console_alice_bob.value += "\n--- Simulation ends ---\n";
-        // console.log(`Alice received ${alice.countTotal} bits from Bob (1s: ${alice.countOnes}).`);
-        // console_alice_bob.value += `Alice received ${alice.countTotal} bits from Bob (1s: ${alice.countOnes}).\n`;
-        // console.log(`Bob received ${bob.countTotal} bits from Alice (1s: ${bob.countOnes}).`);
-        // console_alice_bob.value += `Bob received ${bob.countTotal} bits from Alice (1s: ${bob.countOnes}).\n`;
-
-        // console.log("\nDetailed report:");
-        // console_alice_bob.value += "\nDetailed report:\n";
-        // console.log(`Real bits sent by Bob (before disconnection): ${bobSentBits}`);
-        // console_alice_bob.value += `Real bits sent by Bob (before disconnection): ${bobSentBits}\n`;
-        // console.log(`Bits guessed by Alice (after Bob got disconnected): ${aliceGuessedBits}\n`);
-        // console_alice_bob.value += `Bits guessed by Alice (after Bob got disconnected): ${aliceGuessedBits}\n`;
-        // console_alice_bob.scrollTop = console_alice_bob.scrollHeight;
-
-        Simulate_alice_bob();
-        return { alice, bob, bobSentBits, aliceGuessedBits };
-    }
-
-    function Simulate_alice_bob() {
-
+    function simulate_alice_bob() {
 
         var btn = document.getElementById('alice_bob_btn');
         if (btn.innerHTML == 'Stop') {
@@ -765,126 +547,31 @@
         btn.classList.remove('btn-success');
         btn.classList.add('btn-danger');
         btn.innerHTML = 'Stop';
-
         let p_alice = parseFloat(document.getElementById('ratio_alice').value);
         let p_bob = parseFloat(document.getElementById('ratio_bob').value);
-        let steps = 20;
+        let message_length = parseInt(document.getElementById('message_length').value);
+        let disconnect_percentage = parseInt(document.getElementById('disconnect_percentage').value);
 
-        simulateCommunication(p_alice, p_bob, steps);
-
-
-
-
-
-
-    }
-    function _Simulate_alice_bob() {
-
-
-        var btn = document.getElementById('alice_bob_btn');
-        if (btn.innerHTML == 'Stop') {
-            btn.classList.remove('btn-danger');
-            btn.classList.add('btn-success');
-            btn.innerHTML = 'Start';
-            return;
-        }
-        btn.classList.remove('btn-success');
-        btn.classList.add('btn-danger');
-        btn.innerHTML = 'Stop';
-
-        let p_alice = parseFloat(document.getElementById('ratio_alice').value);
-        let p_bob = parseFloat(document.getElementById('ratio_bob').value);
-        let steps = 20;
-
-        simulateCommunication(p_alice, p_bob, steps);
-
-
-
-
-
-
-    }
-
-    function _bob_alice() {
-        nodes = [];
-
-        var center = getCenter();
-
-        alice = new Node(center.x, center.y, 10, 'red', 'Alice');
-        bob = new Node(center.x + 100, center.y, 10, 'blue', 'Bob');
-
-        nodes.push(alice);
-        nodes.push(bob);
-
-
-
-    }
-
-    function _alice_n_bob(nb_bob = 100) {
-        nodes = [];
-        // var center = getCenter();
-        var alice = new Node(center.x, center.y, 10, 'red', 'Alice');
-        nodes.push(alice);
-
-        var nb_rings = Math.ceil(Math.sqrt(nb_bob)); // Détermine dynamiquement le nombre d'anneaux
-        var base_radius = 100; // Rayon du premier anneau
-        var remaining_bob = nb_bob;
-
-        for (var ring = 1; ring <= nb_rings; ring++) {
-            var radius = base_radius * ring; // Augmente le rayon pour chaque anneau
-            var bob_in_ring = Math.ceil(remaining_bob / (nb_rings - ring + 1)); // Répartir les Bob progressivement
-            var step = (2 * Math.PI) / bob_in_ring; // Angle entre chaque Bob
-            var angle = 0;
-
-            for (var i = 0; i < bob_in_ring; i++) {
-                var x = center.x + radius * Math.cos(angle);
-                var y = center.y + radius * Math.sin(angle);
-                var bob = new Node(x, y, 10, 'blue', `Bob${ring}_${i}`);
-                nodes.push(bob);
-                drawLine(alice.x, alice.y, bob.x, bob.y);
-                angle += step;
-            }
-
-            remaining_bob -= bob_in_ring; // Réduire le nombre de Bob restants
-        }
-    }
-
-    function _MIS(nb_bob = 100) {
-        // DRAW NODES IN NETWORK LIK GRAPH
-        nodes = [];
-
-        for (var i = 0; i < nb_bob; i++) {
-            var x = Math.random() * canvas.width;
-            var y = Math.random() * canvas.height;
-            var bob = new Node(x, y, 10, 'blue', 'Bob' + i);
-            nodes.push(bob);
-        }
-
-
-
-
-    }
-
-    function changeBobAlice() {
+    
         var e = document.getElementById("alice_bob");
         var mode = e.options[e.selectedIndex].value;
-        console.log(mode);
-
+        fetch_alice_bob(mode, p_alice, p_bob, message_length, disconnect_percentage);
+        // simulateCommunication(p_alice, p_bob, steps);
     }
 
-    // listerners and resize canvas
-    // window.addEventListener('resize', resizeCanvas);
-
-
-    async function init_alice_n_bob() {
+    function simulate_alice_n_bob() {
         var nb_bob = document.getElementById('nb_bob').value;
         alice_n_bob(nb_bob);
-        await fetchStream();
+        
     }
 
-
-    async function fetch_alice_bob() {
-        const response = await fetch("/AliceBob/");
+    async function fetch_alice_bob(mode = 'randomn', p_alice = 0.2, p_bob = 0.5,message_length=10,disconnect_percentage=2,message='') {
+        // const response = await fetch("/AliceBob/");
+        const response = await fetch(`/AliceBob/?mode=${mode}&p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}&message=${message}`);
+        let console_alice_bob_alice = document.getElementById('console_alice_bob_alice');
+        let width_console_alice = console_alice_bob_alice.clientWidth;
+        let case_width_alice = (width_console_alice / 4) - 3;
+        console_alice_bob_alice.style.wordSpacing = case_width_alice + 'px';
 
         if (!response.ok) {
             console.error("Erreur:", response.statusText);
@@ -907,9 +594,16 @@
                 try {
                     // Parser la ligne en tant qu'objet JSON
                     const data = JSON.parse(line);
-                    console.log(data); // Afficher dans la console
-                    // Afficher dans l'interface utilisateur
-                    // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+                    let alice_line = [data.step,data.alice, data.bob, data.guess];
+                    console_alice_bob_alice.value += alice_line.join(' ') + '\n';
+                    // scroll to bottom
+                    console_alice_bob_alice.scrollTop = console_alice_bob_alice.scrollHeight;
+                    // change Node color to red if data.disconneted is true
+                    if (data.disconnected) {
+                        console.log("data.disconnected", data.disconnected);
+                        updateNode('Bob', 'red');
+                    }
+
                 } catch (error) {
                     console.error('Erreur de parsing JSON :', error, line);
                 }
@@ -920,7 +614,7 @@
         }
     }
 
-    async function fetchStream() {
+    async function fetch_alice_n_bob() {
         const response = await fetch("/AliceNBob/");
 
         if (!response.ok) {
@@ -946,9 +640,20 @@
                     if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
                         // const data = JSON.parse(line.slice(5));
                         const data = JSON.parse(line);
+                        let disconnecteds = data.disconnecteds;
+
+                        for (let i = 0; i < disconnecteds.length; i++) {
+                            let bob = "Bob-" + disconnecteds[i];
+                            updateNode(bob, 'red');
+                        }
+
+                        
+
                         console.log(data); // Afficher dans la console
                         // Afficher dans l'interface utilisateur
                         // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+
+
                     } else {
                         
                         console.log(line);
@@ -982,28 +687,19 @@
         for (var i = 0; i < box_options.length; i++) {
             box_options[i].classList.remove('d-flex');
             box_options[i].classList.add('d-none');
-
         }
 
-
         if (mode == 'alice_bob') {
-
-
             alice_bob();
             title.innerHTML = 'Alice-Bob';
-
             // get box 
             var box_alice_bob = document.getElementById('box_alice_bob');
             box_alice_bob.classList.remove('d-none');
-
             box_alice_bob.classList.add('d-flex');
-
-
         }
         else if (mode == 'alice_n_bob') {
             alice_n_bob();
             title.innerHTML = 'Alice-N-Bob';
-
             let box = document.getElementById('box_alice_n_bob');
             box.classList.remove('d-none');
             box.classList.add('d-flex');
@@ -1029,37 +725,16 @@
     }
 
     (() => {
-
-        //     console.log("jQuery ready");
+        //console.log("jQuery ready");
         // bob_alice();
         // redraw();
         // JAVA  DROPDOWN
         // Document.ready(function () {
         //     $('.dropdown-toggle').dropdown();
         // });
-
-
-
     })();
 
-    // function alice_n_bob(nb_bob=10){
-    //     nodes = [];
-    //     var center = getCenter();
-    //     var alice = new Node(center.x, center.y, 10, 'red', 'Alice');
-    //     nodes.push(alice);
-    //     // draw bob around alice in circle
-    //     var angle = 0;
-    //     var radius = 100;
-    //     var step = 2 * Math.PI / nb_bob;
-    //     for (var i = 0; i < nb_bob; i++) {
-    //         var x = center.x + radius * Math.cos(angle);
-    //         var y = center.y + radius * Math.sin(angle);
-    //         var bob = new Node(x, y, 10, 'blue', 'Bob' + i);
-    //         nodes.push(bob);
-    //         drawLine(alice.x, alice.y, bob.x, bob.y);
-    //         angle += step;
-    //     }
-    // }
+
 
     // Initialisation au chargement de la page
     // window.addEventListener("DOMContentLoaded", init);

@@ -145,12 +145,20 @@ def index(request):
 @csrf_exempt
 def AliceBob(request):
     "Just 2 Nodes Communication (alice and bob) afeter bob disconnected alice will guess the message"
-    data = request.POST
+    # mode = 'randomn', ,message=''
+    data = request.GET
     p_alice = float(data.get('p_alice', 0.5))
     p_bob = float(data.get('p_bob', 0.5))
     message_length = int(data.get('message_length', 100))
     disconnect_percentage = int(data.get('disconnect_percentage', 20))
+    mode = data.get('mode', 'random')
+    message = data.get('message', '')
+
+    print (p_alice, p_bob, message_length, disconnect_percentage, mode, message)
+    # return JsonResponse({"message": "Hello, world!"}) 
+
     num_disconnected = int(message_length * disconnect_percentage / 100)
+
     def Alice_Bob(p_alice=0.5, p_bob=0.5, message_length=100):
         alice = Node("Alice", p_alice)
         bob = Node("Bob", p_bob)
@@ -168,7 +176,7 @@ def AliceBob(request):
     
 
         for step in range(1, message_length + 1):
-            disconneted = False if step < num_disconnected else True
+            disconnected = False if step < num_disconnected else True
             bit_from_alice = alice.send_message()
             if bit_from_alice is not None:
                 bob.receive_message(bit_from_alice)
@@ -188,7 +196,7 @@ def AliceBob(request):
             results["predicted_bits"].append(guess)
             
 
-            message = json.dumps({"step": step,"alice":bit_from_alice,"bob":bit_from_bob ,"guess":guess, "disconneted":disconneted }) + "\n"
+            message = json.dumps({"step": step,"alice":bit_from_alice,"bob":bit_from_bob ,"guess":guess, "disconnected":disconnected }) + "\n"
             yield message
             time.sleep(1)
 
@@ -204,7 +212,7 @@ def AliceBob(request):
         print("\n--- Simulation finished ---")
 
 
-    return StreamingHttpResponse(Alice_Bob(), content_type="application/json")
+    return StreamingHttpResponse(Alice_Bob(p_alice,p_bob,message_length), content_type="application/json")
 
 @csrf_exempt
 def AliceNBob(request):
@@ -309,23 +317,38 @@ def AliceNBob(request):
                 results["predicted_bits"][bob_id] = []
         
         for step in range(1, message_length + 1):
+            bit_from_alices = {}
+            bit_from_bobs = {}
+            would_send_bits = {}
+            disconnecteds = []
+
             if step % 10 == 0 and step > 20:
                 alice.train_model()
+            
+
             
             for bob_id, bob in enumerate(bobs):
                 if bob_id in disconnected_bobs and step == disconnect_steps[bob_id] and not bob.is_disconnected:
                     bob.is_disconnected = True
                     print(f"** Bob_{bob_id} is now disconnected (step {step})! **")
-                
+                    disconnecteds.append(bob_id)
+
                 bit_from_alice = alice.send_message()
                 if bit_from_alice is not None and not bob.is_disconnected:
                     bob.receive_message(bit_from_alice)
+                    bit_from_alices[bob_id] = bit_from_alice
+
                 
                 would_send_bit = 1 if random.random() < p_bob else 0
                 results["would_send_bits"][bob_id].append(would_send_bit)
+                would_send_bits[bob_id] = would_send_bit
+
+
                 
                 bit_from_bob = bob.send_message()
+                bit_from_bobs[bob_id] = bit_from_bob
                 
+
                 if bit_from_bob is not None:
                     alice.receive_message_from_bob(bob_id, bit_from_bob)
                     results["real_bits"][bob_id].append(bit_from_bob)
@@ -335,7 +358,8 @@ def AliceNBob(request):
             
             if step % 25 == 0 or step == message_length:
                 print(f"[Progress]: {step}/{message_length} steps completed.")
-            message = json.dumps({"step": step , "results": results })+ "\n"
+
+            message = json.dumps({"step": step , "alice":bit_from_alices, "bob":bit_from_bobs, "would_send":would_send_bits,"disconnecteds":disconnecteds}) + "\n"
             yield message
             time.sleep(1)
         

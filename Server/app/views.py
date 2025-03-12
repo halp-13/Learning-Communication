@@ -24,7 +24,7 @@ import torch.nn as nn
 from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import random
-
+from django.conf import settings
 
 class Node:
     """
@@ -398,6 +398,10 @@ def Alice_mnist(request):
 
     # Charger le modèle sauvegardé
     model = CNNAutoencoder()
+    
+    pth = settings.BASE_DIR / "static/data_pth/mnist_autoencoder.pth"
+    model.load_state_dict(torch.load(pth))
+
     # model.load_state_dict(torch.load("mnist_autoencoder.pth"))
     model.eval()  # Mettre le modèle en mode évaluation
 
@@ -461,38 +465,13 @@ def Alice_mnist(request):
         # Afficher les résultats avec matplotlib
         # plt.figure(figsize=(10, 5))
         for i in range(num_samples):
-            # Image d'entrée avec dropout
-        #     ax = plt.subplot(3, num_samples, i+1)
-        #     plt.imshow(dropped_cpu[i][0], cmap='gray')
-        #     plt.title("Dropped")
-        #     plt.axis('off')
-            
-        #     # Image reconstruite par le modèle
-        #     ax = plt.subplot(3, num_samples, i+1+num_samples)
-        #     plt.imshow(reconstructed_cpu[i][0], cmap='gray')
-        #     plt.title("Reconstructed")
-        #     plt.axis('off')
-            
-        #     # Image originale sans modification
-        #     ax = plt.subplot(3, num_samples, i+1+2*num_samples)
-        #     plt.imshow(original_cpu[i][0], cmap='gray')
-        #     plt.title("Original")
-        #     plt.axis('off')
-        
-        # plt.tight_layout()
-        # plt.show()
+   
             yield json.dumps({"original":original_cpu[i][0].tolist(), "dropped":dropped_cpu[i][0].tolist(), "reconstructed":reconstructed_cpu[i][0].tolist()}) + "\n"
             time.sleep(1)
 
 
 
-    #            # Convertir l'image en base64 pour l'affichage
-    #             output_image = Image.fromarray((output * 255).astype(np.uint8))
-    #             buffered = io.BytesIO()
-    #             output_image.save(buffered, format="PNG")
-    #             img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
-                
-    #             return JsonResponse({'reconstructed_image': img_str})
+
 
     
     return StreamingHttpResponse(show_random_predictions(model, test_loader, device, num_samples, drop_probability), content_type="application/json")

@@ -52,6 +52,7 @@
                 { routing: go.Link.Orthogonal, corner: 5, click: linkClicked },
                 $(go.Shape, new go.Binding("stroke", "color"))
             );
+            
 
         // myDiagram.model = new go.GraphLinksModel(
         //     [
@@ -63,6 +64,17 @@
         //     ]
         // );
             
+
+
+// Exemple d'utilisation
+const myDiagramModel = generateGraph("bipartite", 6, {
+    vertexColor: "lightgreen",
+    edgeColor: "gray"
+});
+
+// Assigner le modèle au diagramme
+myDiagram.model = myDiagramModel;
+        
         function addNode(name) {
             // var newNodeKey = "N" + (myDiagram.model.nodeDataArray.length + 1);
             var newNodeKey = name;

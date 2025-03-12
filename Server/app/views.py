@@ -17,8 +17,14 @@ from django.http import StreamingHttpResponse
 import time
 
 import json
-# Configuration du modèle
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+import torch
+import torch.nn as nn
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+import random
+
 
 class Node:
     """
@@ -72,68 +78,26 @@ class Node:
 
 
 
-# class CNNAutoencoder(nn.Module):
-#     def __init__(self):
-#         super(CNNAutoencoder, self).__init__()
-#         self.encoder = nn.Sequential(
-#             nn.Conv2d(1, 32, kernel_size=3, padding=1),
-#             nn.ReLU(),
-#             nn.MaxPool2d(2, 2),
-#             nn.Conv2d(32, 64, kernel_size=3, padding=1),
-#             nn.ReLU(),
-#             nn.MaxPool2d(2, 2)
-#         )
-#         self.decoder = nn.Sequential(
-#             nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2),
-#             nn.ReLU(),
-#             nn.ConvTranspose2d(32, 1, kernel_size=2, stride=2)
-#         )
-#     def forward(self, x):
-#         encoded = self.encoder(x)
-#         decoded = self.decoder(encoded)
-#         return decoded
+class CNNAutoencoder(nn.Module):
+    def __init__(self):
+        super(CNNAutoencoder, self).__init__()
+        self.encoder = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2)
+        )
+        self.decoder = nn.Sequential(
+            nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2),
+            nn.ReLU(),
+            nn.ConvTranspose2d(32, 1, kernel_size=2, stride=2))
 
-# # Charger le modèle entraîné
-# model = CNNAutoencoder().to(device)
-# model.load_state_dict(torch.load("mnist_autoencoder.pth", map_location=device))
-# model.eval()
-
-# # Transformation des images
-# def binarize(tensor):
-#     return (tensor > 0.5).float()
-
-# def preprocess_image(image):
-#     transform = transforms.Compose([
-#         transforms.Grayscale(num_output_channels=1),
-#         transforms.Resize((28, 28)),
-#         transforms.ToTensor(),
-#         transforms.Lambda(lambda x: binarize(x)),
-#     ])
-#     return transform(image).unsqueeze(0).to(device)  # Ajouter une dimension batch
-
-# @csrf_exempt
-# def predict(request):
-#     if request.method == 'POST':
-#         try:
-#             image_data = request.FILES['image'].read()
-#             image = Image.open(io.BytesIO(image_data)).convert('L')
-#             processed_image = preprocess_image(image)
-            
-#             # Passer l'image dans l'autoencodeur
-#             with torch.no_grad():
-#                 output = model(processed_image)
-#                 output = torch.sigmoid(output).cpu().numpy()[0, 0]  # Convertir en numpy
-            
-#             # Convertir l'image en base64 pour l'affichage
-#             output_image = Image.fromarray((output * 255).astype(np.uint8))
-#             buffered = io.BytesIO()
-#             output_image.save(buffered, format="PNG")
-#             img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
-            
-#             return JsonResponse({'reconstructed_image': img_str})
-#         except Exception as e:
-#             return JsonResponse({'error': str(e)}, status=400)
-#     return JsonResponse({'message': 'Use POST request to send an image.'}, status=400)
+    def forward(self, x):
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded
 
 
 
@@ -218,10 +182,10 @@ def AliceBob(request):
 def AliceNBob(request):
 
     # get the data from the request
-    data = request.POST
+    data = request.GET
     p_alice = float(data.get('p_alice', 0.5))
     p_bob = float(data.get('p_bob', 0.5))
-    num_bobs = int(data.get('num_bobs', 100))
+    num_bobs = int(data.get('nb_bob', 100))
     disconnect_percentage = int(data.get('disconnect_percentage', 20))
     message_length = int(data.get('message_length', 100))
 
@@ -420,4 +384,116 @@ def AliceNBob(request):
         # yield alice, bobs, results
 
 
-    return StreamingHttpResponse(simulate_enhanced_communication(), content_type="application/json")
+    return StreamingHttpResponse(simulate_enhanced_communication(p_alice,p_bob,num_bobs,disconnect_percentage, message_length), content_type="application/json")
+
+
+
+@csrf_exempt
+def Alice_mnist(request):
+
+    data = request.GET
+    drop_probability = float(data.get('drop_probability', 0.6))
+    num_samples = int(data.get('num_samples', 1))
+
+
+    # Charger le modèle sauvegardé
+    model = CNNAutoencoder()
+    # model.load_state_dict(torch.load("mnist_autoencoder.pth"))
+    model.eval()  # Mettre le modèle en mode évaluation
+
+    # Définir la transformation pour les nouvelles données
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Lambda(lambda x: (x > 0.5).float()),
+    ])
+
+    # Charger le dataset MNIST (ou vos propres données)
+    test_dataset = datasets.MNIST(
+        root='./data',
+        train=False,
+        download=True,
+        transform=transform
+    )
+
+    # Créer un DataLoader pour itérer sur les données
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=False)
+
+    # Fonction pour appliquer le dropout
+    def random_drop_784(batch_images_flat, drop_probability=0.6):
+        mask = (torch.rand_like(batch_images_flat) > drop_probability)
+        dropped_flat = batch_images_flat.clone()
+        dropped_flat[mask == 0] = -1
+        return dropped_flat
+
+    # Utiliser la fonction pour afficher les prédictions
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
+
+    # Fonction pour afficher les prédictions
+    def show_random_predictions(model, test_loader, device, num_samples=1, drop_probability=0.6):
+        model.eval()
+        
+        # Charger toutes les données de test sous forme de liste
+        all_data = list(test_loader)
+        
+        # Sélectionner un échantillon aléatoire parmi les données de test
+        sample_images, _ = random.choice(all_data)
+        
+        # Limiter le nombre d'images affichées
+        sample_images = sample_images[:num_samples].to(device)
+        
+        # Appliquer le dropout sur les images aplaties
+        flat_sample = sample_images.view(num_samples, -1)
+        dropped_flat_sample = random_drop_784(flat_sample, drop_probability=drop_probability)
+
+        dropped_input_sample = dropped_flat_sample.view(num_samples, 1, 28, 28)
+        
+        # Obtenir les prédictions du modèle
+        with torch.no_grad():
+            logits = model(dropped_input_sample)
+            reconstructed = torch.sigmoid(logits)
+        
+        # Convertir les tenseurs en CPU et en numpy pour l'affichage
+        original_cpu = sample_images.cpu().numpy()
+        dropped_cpu = dropped_input_sample.cpu().numpy()
+        reconstructed_cpu = reconstructed.cpu().numpy()
+        
+        # Afficher les résultats avec matplotlib
+        # plt.figure(figsize=(10, 5))
+        for i in range(num_samples):
+            # Image d'entrée avec dropout
+        #     ax = plt.subplot(3, num_samples, i+1)
+        #     plt.imshow(dropped_cpu[i][0], cmap='gray')
+        #     plt.title("Dropped")
+        #     plt.axis('off')
+            
+        #     # Image reconstruite par le modèle
+        #     ax = plt.subplot(3, num_samples, i+1+num_samples)
+        #     plt.imshow(reconstructed_cpu[i][0], cmap='gray')
+        #     plt.title("Reconstructed")
+        #     plt.axis('off')
+            
+        #     # Image originale sans modification
+        #     ax = plt.subplot(3, num_samples, i+1+2*num_samples)
+        #     plt.imshow(original_cpu[i][0], cmap='gray')
+        #     plt.title("Original")
+        #     plt.axis('off')
+        
+        # plt.tight_layout()
+        # plt.show()
+            yield json.dumps({"original":original_cpu[i][0].tolist(), "dropped":dropped_cpu[i][0].tolist(), "reconstructed":reconstructed_cpu[i][0].tolist()}) + "\n"
+            time.sleep(1)
+
+
+
+    #            # Convertir l'image en base64 pour l'affichage
+    #             output_image = Image.fromarray((output * 255).astype(np.uint8))
+    #             buffered = io.BytesIO()
+    #             output_image.save(buffered, format="PNG")
+    #             img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+                
+    #             return JsonResponse({'reconstructed_image': img_str})
+
+    
+    return StreamingHttpResponse(show_random_predictions(model, test_loader, device, num_samples, drop_probability), content_type="application/json")
+        

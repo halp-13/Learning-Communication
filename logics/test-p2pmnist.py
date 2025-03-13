@@ -285,17 +285,17 @@ def main():
     learning_rate = 1e-4       # Taux d'apprentissage si entraînement nécessaire
     
     # Afficher les paramètres utilisés
-    print("\n=== Paramètres du test P2P MNIST ===")
-    print(f"Pourcentage de déconnexion: {disconnect_percentage}%")
-    print(f"Taille du buffer: {buffer_size}")
-    print(f"Nombre d'échantillons: {test_steps}")
-    print(f"Nombre d'époques (si entraînement): {epochs}")
-    print(f"Taux d'apprentissage (si entraînement): {learning_rate}")
+    print("\n=== P2P MNIST Test Parameters ===")
+    print(f"Disconnect percentage: {disconnect_percentage}%")
+    print(f"Buffer size: {buffer_size}")
+    print(f"Nomber of test steps: {test_steps}")
+    print(f"Nomber of epochs: {epochs}")
+    print(f"Learning rate : {learning_rate}")
     print("================================\n")
     
     # Vérifier si le répertoire de données existe, le créer si nécessaire
     if not os.path.exists('./data'):
-        print("Répertoire de données non trouvé. Il sera créé lors du chargement du dataset.")
+        print("data directory not found, creating...")
     
     # Vérifier et entraîner le modèle si nécessaire
     model_trained = check_and_train_model(
@@ -306,7 +306,7 @@ def main():
     )
     
     if not model_trained:
-        print("Impossible de garantir la disponibilité du modèle. Arrêt.")
+        print(" it was not possible to train the model.")
         return
     
     # Exécuter le test
@@ -316,7 +316,7 @@ def main():
         test_steps
     )
     
-    print("Test terminé avec succès!")
+    print("Test finished with sucsess.")
 
 if __name__ == "__main__":
     main()

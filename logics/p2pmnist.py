@@ -7,10 +7,6 @@ import random
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 
-# -----------------------------------------------------------------------------
-#                        PARTIE 1: DÉFINITIONS DES CLASSES P2P
-# -----------------------------------------------------------------------------
-
 class Node:
     """
     Cette classe représente un nœud dans la communication P2P.
@@ -177,9 +173,6 @@ class Alice(Node):
                 return self.guess_message()
 
 
-# -----------------------------------------------------------------------------
-#                     PARTIE 2: DÉFINITION DU CNN AUTOENCODER
-# -----------------------------------------------------------------------------
 
 class CNNAutoencoder(nn.Module):
     """
@@ -206,7 +199,7 @@ class CNNAutoencoder(nn.Module):
             nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2),  # (B,32,14,14)
             nn.ReLU(),
             nn.ConvTranspose2d(32, 1, kernel_size=2, stride=2)    # (B,1,28,28)
-            # (FR) Pas de sigmoid ici; on utilisera BCEWithLogitsLoss
+            # Pas de sigmoid ici; on utilisera BCEWithLogitsLoss
         )
         
     def forward(self, x):
@@ -215,9 +208,6 @@ class CNNAutoencoder(nn.Module):
         return decoded
 
 
-# -----------------------------------------------------------------------------
-#                     PARTIE 3: FONCTIONS D'ENTRAÎNEMENT
-# -----------------------------------------------------------------------------
 
 def train_cnn_model_with_dynamic_disconnections(model, train_loader, device, epochs=10, disconnect_percentage=15, buffer_size=20, learning_rate=1e-3):
     """
@@ -295,9 +285,6 @@ def train_cnn_model_with_dynamic_disconnections(model, train_loader, device, epo
     return model
 
 
-# -----------------------------------------------------------------------------
-#                     PARTIE 4: FONCTION PRINCIPALE
-# -----------------------------------------------------------------------------
 
 def main():
     """Fonction principale pour l'entraînement du modèle"""

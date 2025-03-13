@@ -52,7 +52,7 @@ html , body {
 
 #myDiagramDiv {
     width: 100%;
-    height: 600px;
+    height: 80%;
     border: 1px solid black;
 }
 
@@ -70,4 +70,23 @@ html , body {
 
         max-height: 100%;
         max-width: 100%;
+}
+.blurred-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(10px); /* Effet flou */
+    background: rgba(255, 255, 255, 0.2); /* Transparence */
+    z-index: 1;
+}
+
+/* Désactiver le formulaire en dessous */
+.overlay {
+    position: relative;
+    z-index: 2;
+    pointer-events: none; /* Empêche les interactions */
+
+  
 }

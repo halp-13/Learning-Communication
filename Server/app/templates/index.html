@@ -10,18 +10,74 @@
                 <div class="card-header rounded-0" style="background-color: #4c4c4c;">
                     <h4 class="card-title text-center" id="Titre">--------------</h4>
                 </div>
-                <div class="card-body d-flex p-0">
-                    <!-- <canvas ref="canvas" id="canvas" width="200" height="100"></canvas>
-                    -->
+                <div class="card-body d-flex flex-column p-0">
 
-                    <div class="d-flex align-items-center justify-content-center  " id="canvasBox" style="flex:1;"
-                        ref="canvasBox">
-                        <div id="myDiagramDiv" style="flex:1;"></div>
+                    <div id="myDiagramDiv"></div>
 
+                    <div id="botton_option" class="card text-dark bg-light d-flex flex-row overlay "
+                        style="height: 20%;width: 100%;">
+                        <div class="d-flex  flex-column justify-content-between" style="flex: 1;">
+                            <table class="h-100">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Graph Type</th>
+                                        <td>
+                                            <select name="graph_type" id="graph_type">
+                                                <option value="random">Random</option>
+                                                <option value="cycle">Cycle</option>
+                                                <option value="bipartite">Bipartite</option>
+                                                <option value="grid">Grid</option>
+                                                <option value="tree">Tree</option>
+                                                <option value="star">Star</option>
+                                                <option value="complete">Complete</option>
+                                                <option value="path">Path</option>
+                                                <option value="regular">Regular</option>
+                                                <option value="planaire">Planaire</option>
+                                                <option value="eulerien">Eulerien</option>
+                                                <option value="hamiltonien">Hamiltonien</option>
+                                                <option value="custom">Custom</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Number of nodes</th>
+                                        <td>
+                                            <input type="number" name="nb_nodes" id="nb_nodes" value="10">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Layout</th>
+                                        <td>
+                                            <select name="layout" id="layout" onchange="_changeLayout()">
+                                                <option value="layout">Default</option>
+                                                <option value="force">Force</option>
+                                                <option value="circular">Circular</option>
+                                                <option value="layered">Layered</option>
+                                                <option value="grid">Grid</option>
+                                                <option value="tree">Tree</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
 
+                            </table>
+                            <button class="btn btn-primary" onclick="_generateGraph()">Generate Graph</button>
+                        </div>
+                        <div class=" card d-flex " style="flex:1;">
+                            <div class="card-header text-center text-dark">Outils</div>
+                            <div class="d-flex align-content-end justify-content-between flex-wrap">
+                                <button class="btn btn-primary" onclick="addNode()">Add Node</button>
+                                <button class="btn btn-primary" onclick="updateNode()">Update Node</button>
 
-                        <!-- <canvas style="margin:0;padding:0; background-repeat: no-repeat; background-position:center; " ref="canvas" id="canvas" class="canvasView"></canvas> -->
+                                <button class="btn btn-primary" onclick="_deleteNode()">Delete Node</button>
+                                <button class="btn btn-primary" onclick="_deleteLink()">Delete Link</button>
+
+                            </div>
+                        </div>
+
+                        <div id="blur_box" class="d-none"></div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -34,8 +90,7 @@
                         </div>
                         <div class="card-body d-flex p-0 m-0 flex-column">
 
-                            <select name="modes" id="mode-select" onchange="changeMode()">
-                                <option value="">----------</option>
+                            <select name="modes" id="mode-select" onchange="_changeMode()">
                                 <option value="alice_bob">ALice-Bob</option>
                                 <option value="alice_n_bob">Alice-N-Bob</option>
                                 <option value="alice_mnist">Alice-NNIST</option>
@@ -56,8 +111,8 @@
                                         <tr>
                                             <th scope=" row">Logique Bob</th>
                                             <td>
-                                                <select name="bob_alice_2" id="alice_bob_2" onchange="changeBobAlice()">
-                                                    <option value="">----------</option>
+                                                <select name="logique_bob_1" id="logique_bob_1"
+                                                    onchange="changeBobAlice()">
                                                     <option value="rd">Random</option>
                                                     <option value="alice_n_bob">Serie</option>
                                                 </select>
@@ -141,25 +196,20 @@
 
                                         </tr>
                                     </thead>
-                                    <tbody class="h-100"">
-                                    <tr>
-                                        <th scope=" row">Logique Bob</th>
-                                        <td>
-                                            <select name="bob_alice_n" id="alice_bob_n" onchange="changeBobAlice()">
-                                                <option value="">----------</option>
-                                                <option value="rd">Random</option>
-                                                <option value="alice_n_bob">Serie</option>
-
-                                            </select>
-                                        </td>
-
-                                        </tr>
+                                    <tbody class="h-100">
                                         <tr>
-                                            <th scope="row">Nombre de Bob</th>
+                                            <th scope=" row">Logique Bob</th>
                                             <td>
-                                                <input type="number" name="nb_bob_n" id="nb_bob_n" value="10">
+                                                <select name="bob_alice_n" id="alice_bob_n" onchange="changeBobAlice()">
+                                                    <option value="">----------</option>
+                                                    <option value="rd">Random</option>
+                                                    <option value="alice_n_bob">Serie</option>
+
+                                                </select>
                                             </td>
+
                                         </tr>
+
                                         <tr>
                                             <th scope="row">Ratio 1 Bob</th>
                                             <td>
@@ -288,68 +338,14 @@
                             </div>
                         </div>
                     </div>
-                    <div id="box_mis" class="box_options h-100 d-none">
+                    <div id="box_mis" class="box_options h-100 d-none flex-column">
                         <div class="card d-flex ">
                             <div class="card-header text-dark text-center">
                                 Options
                             </div>
                             <div class="card-body d-flex p-0 m-0 flex-column">
                                 <!-- table form  -->
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Option</th>
-                                            <th scope="col">Valeur</th>
 
-                                        </tr>
-                                    </thead>
-                                    <tbody class="h-100">
-                                        <tr>
-                                            <th scope=" row">Graph Type</th>
-                                            <td>
-                                                <select name="graph_type" id="graph_type">
-                                                    <option value="">----------</option>
-                                                    <option value="random">Random</option>
-                                                    <option value="cycle">Cycle</option>
-                                                    <option value="bipartite">Bipartite</option>
-                                                    <option value="grid">Grid</option>
-                                                    <option value="tree">Tree</option>
-                                                    <option value="star">Star</option>
-                                                    <option value="complete">Complete</option>
-                                                    <option value="path">Path</option>
-                                                    <option value="regular">Regular</option>
-                                                    <option value="planaire">Planaire</option>
-                                                    <option value="eulerien">Eulerien</option>
-                                                    <option value="hamiltonien">Hamiltonien</option>
-                                                    <option value="custom">Custom</option>
-
-
-                                                </select>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Number of nodes</th>
-                                            <td>
-                                                <input type="number" name="nb_nodes" id="nb_nodes" value="10">
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Layout</th>
-                                            <td>
-                                                <select name="layout" id="layout" onchange="changeLayout()">
-                                                    <option value="">----------</option>
-                                                    <option value="force">Force</option>
-                                                    <option value="circular">Circular</option>
-                                                    <option value="layered">Layered</option>
-                                                    <option value="grid">Grid</option>
-                                                    <option value="tree">Tree</option>
-                                                </select>
-
-                                        </tr>
-
-                                    </tbody>
-                                </table>
-                                <button onclick="_generateGraph()" class="btn btn-primary">Generate</button>
                                 <button onclick="simulate_mis()" class="btn btn-success">Run</button>
 
                             </div>
@@ -357,11 +353,11 @@
                         <div class=" d-flex p-1 flex-column" style="flex: 1;">
                             <div class="d-flex bg-light" style="flex: 1;">
                                 <div class=" card d-flex bg-transparent " style="flex: 1; ">
-                                    <div class="card-header text-center text-dark">Original</div>
-                                    <div id="img-original"
-                                        style=" background-image: url('/static/original.png')  ; background-size: contain; background-position: center; background-repeat: no-repeat; height: 100%; width: 100%;">
-                                    </div>
+                                    <div class="card-header text-center text-dark">Result</div>
 
+                                    <div class="card-body">
+                                        <button class="btn btn-primary">Télécharger</button>
+                                    </div>
 
 
                                 </div>
@@ -370,7 +366,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div id="loader" style="display: none;">
                     <div
                         style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);color: black; ">
@@ -380,982 +375,1107 @@
                     </div>
                 </div>
             </div>
-            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-            {% block scripts %}
-            <script>
-                // $(document).ready(function () {
-                //     console.log("jQuery ready");
-                // });
-                const canevas_box = document.getElementById('canvasBox');
-                var $ = go.GraphObject.make;
+{% block scripts %}
+<script>
+    // $(document).ready(function () {
+    //     console.log("jQuery ready");
+    // });
+    const canevas_box = document.getElementById('canvasBox');
+    var $ = go.GraphObject.make;
 
-                var simunlation_started = false;
+    var simunlation_started = false;
+    var layout = "layout";
+    var mode = "alice_bob";
 
-                var myDiagram = $(go.Diagram, "myDiagramDiv", {
-                    "undoManager.isEnabled": true,
-                    // layout: $(go.ForceDirectedLayout),  // Ajout d'un layout pour éviter la superposition
-                    "panningTool.isEnabled": false,
-                    isReadOnly: false, // Permet de cliquer sur les cellules
-                    // allowZoom: false,
-                    // allowSelect: false,
-                    initialAutoScale: go.AutoScale.Uniform
+    var myDiagram = $(go.Diagram, "myDiagramDiv", {
+        "undoManager.isEnabled": true, // Activer le gestionnaire d'annulation
+        // layout: $(go.ForceDirectedLayout),  // Ajout d'un layout pour éviter la superposition
+        "panningTool.isEnabled": false, // Désactiver le déplacement du diagramme
+        isReadOnly: false, // Permet de cliquer sur les cellules
+        // allowZoom: false,
+        // allowSelect: true, 
+        initialAutoScale: go.AutoScale.Uniform
+    });
+
+    function addNode(name) {
+        // var newNodeKey = "N" + (myDiagram.model.nodeDataArray.length + 1);
+        var newNodeKey = name;
+        var x = Math.random() * 400;
+        var y = Math.random() * 400;
+        myDiagram.startTransaction("add node");
+        myDiagram.model.addNodeData({ key: newNodeKey, loc: x + " " + y, color: "lightblue" });
+        myDiagram.model.addLinkData({ from: "Alice", to: newNodeKey, color: "black" }); // Relier chaque nouveau nœud à A
+        // myDiagram.model.addLinkData({ from: newNodeKey, to: "A", color: "black" }); // Ajouter un lien retour pour rendre le graphe non orienté
+        myDiagram.commitTransaction("add node");
+        // Ajouter le nouveau nœud à la liste des nœuds
+        var option = document.createElement("option");
+        option.text = newNodeKey;
+        // document.getElementById("nodes").add(option);
+    }
+
+    function updateNode(nodeKey, color) {
+        var node = myDiagram.model.findNodeDataForKey(nodeKey);
+        if (node) {
+            myDiagram.startTransaction("update node");
+            myDiagram.model.setDataProperty(node, "color", color || "lightblue");
+            myDiagram.commitTransaction("update node");
+        } else {
+            alert("Nœud introuvable : " + nodeKey);
+        }
+    }
+
+    function updateNodes(nodeKeys, color) {
+        myDiagram.startTransaction("update nodes");
+
+        const model = myDiagram.model;
+        nodeKeys.forEach(nodeKey => {
+            const node = model.findNodeDataForKey(nodeKey);
+            if (node) {
+                model.setDataProperty(node, "color", color || "lightblue");
+            } else {
+                console.warn("Nœud introuvable : " + nodeKey);
+            }
+        });
+
+        myDiagram.commitTransaction("update nodes");
+    }
+
+    function deleteNode(nodeKey) {
+        var node = myDiagram.model.findNodeDataForKey(nodeKey);
+        if (node) {
+            myDiagram.startTransaction("delete node");
+            myDiagram.model.removeNodeData(node);
+            myDiagram.commitTransaction("delete node");
+        } else {
+            alert("Nœud introuvable");
+        }
+    }
+
+    function findLink(fromNodeKey, toNodeKey) {
+        return myDiagram.model.linkDataArray.find(link =>
+            (link.from === fromNodeKey && link.to === toNodeKey) ||
+            (link.from === toNodeKey && link.to === fromNodeKey));
+    }
+
+    function getNodeLinks(nodeKey) {
+        return myDiagram.model.linkDataArray.filter(link => link.from === nodeKey || link.to === nodeKey);
+    }
+
+    function deleteLink(fromNodeKey, toNodeKey) {
+        var link = findLink(fromNodeKey, toNodeKey);
+        if (link) {
+            myDiagram.startTransaction("delete link");
+            myDiagram.model.removeLinkData(link);
+            myDiagram.commitTransaction("delete link");
+        } else {
+            alert("Lien introuvable");
+        }
+    }
+
+    function nodeClicked(e, node) {
+        // updateNode(node.data.key);
+    }
+
+    function updateLink(fromNodeKey, toNodeKey, color) {
+        var link = findLink(fromNodeKey, toNodeKey);
+        if (link) {
+            myDiagram.startTransaction("update link");
+            myDiagram.model.setDataProperty(link, "color", color || "red");
+            myDiagram.commitTransaction("update link");
+        } else {
+            alert("Lien introuvable");
+        }
+    }
+
+    function linkClicked(e, link) {
+        // alert("Lien cliqué entre " + link.data.from + " et " + link.data.to);
+        // updateLink(link.data.from, link.data.to, "red");
+    }
+
+    _deleteNode = function () {
+        var nodeKey = document.getElementById("nodes").value;
+        deleteNode(nodeKey);
+    }
+
+    _deleteLink = function () {
+        var fromNodeKey = "Alice";
+        var toNodeKey = document.getElementById("nodes").value;
+        deleteLink(fromNodeKey, toNodeKey);
+    }
+
+    function alice_bob() {
+        layout = "force";
+        changeLayout();
+
+        myDiagram.nodeTemplate =
+            $(go.Node, "Auto",
+                { locationSpot: go.Spot.Center, click: nodeClicked },
+                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                $(go.Shape, "RoundedRectangle",
+                    { fill: "lightblue" },
+                    new go.Binding("fill", "color")),
+                $(go.TextBlock,
+                    { margin: 8 },
+                    new go.Binding("text", "key"))
+            );
+
+        myDiagram.linkTemplate =
+            $(go.Link,
+                { corner: 5, click: linkClicked },
+                $(go.Shape, new go.Binding("stroke", "color"))
+            );
+        myDiagram.model = new go.GraphLinksModel(
+            [
+                { key: "Alice", loc: "0 0", color: "lightblue" },
+                { key: "Bob", loc: "100 0", color: "lightblue" }
+            ],
+            [
+                { from: "Alice", to: "Bob", color: "black" }
+            ]
+        );
+
+    }
+
+    function alice_mnist() {
+
+        // remove diagram layout CircularLayout Sample
+        layout = "layout";
+        changeLayout();
+        // console.log({ layout: myDiagram.layout });
+        const rows = 28, cols = 28; // Taille de la grille
+        const nodeSize = 100; // Taille d'une cellule
+
+        myDiagram.nodeTemplate = $(
+            go.Node,
+            "Auto",
+            { locationSpot: go.Spot.Center },
+            $(
+                go.Shape,
+                "Rectangle",
+                {
+                    fill: "white", // Couleur par défaut
+                    stroke: "#A2A2A2", // Couleur de la bordure
+                    strokeWidth: 1,
+                    width: nodeSize,
+                    height: nodeSize
+                },
+                new go.Binding("fill", "color") // Lie la couleur à la propriété "color"
+            ),
+            {
+                click: (e, node) => {
+                    // Changer la couleur de la cellule au clic
+                    // const colors = ["white", "lightblue", "lightblue", "pink", "yellow"];
+                    // const currentColor = node.data.color || "white";
+                    // const nextColor = colors[(colors.indexOf(currentColor) + 1) % colors.length] || colors[0];
+                    // myDiagram.model.setDataProperty(node.data, "color", nextColor);
+                    // alert key 
+                    alert(node.data.key);
+                    updateNode(node.data.key, 'red');
+                }
+            }
+        );
+
+        // Création de la grille
+        const nodeDataArray = [];
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                nodeDataArray.push({
+                    key: `${i}-${j}`, // Identifiant unique
+                    loc: new go.Point(j * nodeSize, i * nodeSize), // Position dans la grille
+                    color: "green" // Couleur initiale
                 });
+            }
+        }
 
-                function addNode(name) {
-                    // var newNodeKey = "N" + (myDiagram.model.nodeDataArray.length + 1);
-                    var newNodeKey = name;
-                    var x = Math.random() * 400;
-                    var y = Math.random() * 400;
-                    myDiagram.startTransaction("add node");
-                    myDiagram.model.addNodeData({ key: newNodeKey, loc: x + " " + y, color: "lightblue" });
-                    myDiagram.model.addLinkData({ from: "Alice", to: newNodeKey, color: "black" }); // Relier chaque nouveau nœud à A
-                    // myDiagram.model.addLinkData({ from: newNodeKey, to: "A", color: "black" }); // Ajouter un lien retour pour rendre le graphe non orienté
-                    myDiagram.commitTransaction("add node");
-                    // Ajouter le nouveau nœud à la liste des nœuds
-                    var option = document.createElement("option");
-                    option.text = newNodeKey;
-                    // document.getElementById("nodes").add(option);
-                }
+        // Appliquer le modèle
+        myDiagram.model = new go.GraphLinksModel({ nodeDataArray });
+    }
 
-                function updateNode(nodeKey, color) {
-                    var node = myDiagram.model.findNodeDataForKey(nodeKey);
-                    if (node) {
-                        myDiagram.startTransaction("update node");
-                        myDiagram.model.setDataProperty(node, "color", color || "lightgreen");
-                        myDiagram.commitTransaction("update node");
-                    } else {
-                        alert("Nœud introuvable : " + nodeKey);
+    function mis() {
+        layout = "force";
+        changeLayout();
+
+        const vertices = document.getElementById('nb_nodes').value;
+
+        myDiagram.nodeTemplate =
+            $(go.Node, "Auto",
+                { locationSpot: go.Spot.Center, click: nodeClicked },
+                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                $(go.Shape, "RoundedRectangle",
+                    { fill: "lightblue" },
+                    new go.Binding("fill", "color")),
+                $(go.TextBlock,
+                    { margin: 8 },
+                    new go.Binding("text", "key"))
+            );
+
+        myDiagram.linkTemplate =
+            $(go.Link,
+                { corner: 5, click: linkClicked },
+                $(go.Shape, new go.Binding("stroke", "color"))
+            );
+
+        const myDiagramModel = generateGraph("eulerien", vertices, {
+            vertexColor: "lightblue",
+            edgeColor: "gray"
+        });
+
+        // Assigner le modèle au diagramme
+        myDiagram.model = myDiagramModel;
+    }
+
+    function showLoader() {
+        document.getElementById("loader").style.display = "block";
+    }
+
+    function hideLoader() {
+        document.getElementById("loader").style.display = "none";
+    }
+
+    function updateProgress(progress) {
+        document.getElementById("progressBar").value = progress;
+        document.getElementById("progressText").innerText = progress + "%";
+    }
+
+    function alice_n_bob() {
+
+        const vertices = document.getElementById('nb_nodes').value;
+
+        layout = "force";
+        myDiagram.nodeTemplate =
+            $(go.Node, "Auto",
+                { locationSpot: go.Spot.Center, click: nodeClicked },
+                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                $(go.Shape, "RoundedRectangle",
+                    { fill: "lightblue" },
+                    new go.Binding("fill", "color")),
+                $(go.TextBlock,
+                    { margin: 8 },
+                    new go.Binding("text", "key"))
+            );
+
+        myDiagram.linkTemplate =
+            $(go.Link,
+                { corner: 5, click: linkClicked },
+                $(go.Shape, new go.Binding("stroke", "color"))
+            );
+
+
+
+        const myDiagramModel = generateGraph("alice_n_bob", vertices, {
+            vertexColor: "lightblue",
+            edgeColor: "gray"
+        });
+
+        myDiagram.model = myDiagramModel;
+
+
+        return true;
+    }
+
+    async function simulate_alice_bob() {
+
+        var btn = document.getElementById('alice_bob_btn');
+        if (btn.innerHTML == 'Stop') {
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-success');
+            btn.innerHTML = 'Start';
+            simunlation_started = false;
+            return;
+        }
+
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-danger');
+        btn.innerHTML = 'Stop';
+        let p_alice = parseFloat(document.getElementById('ratio_alice').value);
+        let p_bob = parseFloat(document.getElementById('ratio_bob').value);
+        let message_length = parseInt(document.getElementById('message_length').value);
+        let disconnect_percentage = parseInt(document.getElementById('disconnect_percentage').value);
+
+
+        var mode = document.getElementById("logique_bob_1").value;
+        simunlation_started = true;
+        await fetch_alice_bob(mode, p_alice, p_bob, message_length, disconnect_percentage);
+        // simulateCommunication(p_alice, p_bob, steps);
+    }
+
+    async function simulate_alice_n_bob() {
+        const ok = alice_n_bob();
+        console.log({ ok });
+        if (ok) {
+            await fetch_alice_n_bob();
+        }
+
+
+    }
+
+    async function fetch_alice_bob(mode = 'randomn', p_alice = 0.2, p_bob = 0.5, message_length = 10, disconnect_percentage = 2, message = '') {
+        // const response = await fetch("/AliceBob/");
+        const response = await fetch(`/AliceBob/?mode=${mode}&p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}&message=${message}`);
+        let console_alice_bob_alice = document.getElementById('console_alice_bob_alice');
+        let width_console_alice = console_alice_bob_alice.clientWidth;
+        let case_width_alice = (width_console_alice / 4) - 3;
+        console_alice_bob_alice.style.wordSpacing = case_width_alice + 'px';
+
+        if (!response.ok) {
+            console.error("Erreur:", response.statusText);
+            return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        while (simunlation_started) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.trim() === '') continue; // Ignorer les lignes vides
+
+                try {
+                    // Parser la ligne en tant qu'objet JSON
+                    const data = JSON.parse(line);
+                    let alice_line = [data.step, data.alice, data.bob, data.guess];
+                    console_alice_bob_alice.value += alice_line.join(' ') + '\n';
+                    // scroll to bottom
+                    console_alice_bob_alice.scrollTop = console_alice_bob_alice.scrollHeight;
+                    // change Node color to red if data.disconneted is true
+                    if (data.disconnected) {
+                        updateNode('Bob', 'red');
                     }
+
+                } catch (error) {
+                    console.error('Erreur de parsing JSON :', error, line);
                 }
+            }
 
-                function updateNodes(nodeKeys, color) {
-                    myDiagram.startTransaction("update nodes");
+            // Afficher dans une div HTML
+            // document.getElementById("output").innerText += chunk;
+        }
+    }
 
-                    const model = myDiagram.model;
-                    nodeKeys.forEach(nodeKey => {
-                        const node = model.findNodeDataForKey(nodeKey);
-                        if (node) {
-                            model.setDataProperty(node, "color", color || "lightgreen");
-                        } else {
-                            console.warn("Nœud introuvable : " + nodeKey);
+    async function fetch_alice_n_bob() {
+
+        const mode = document.getElementById('alice_bob_n').value;
+        const nb_bob = document.getElementById('nb_bob_n').value;
+        const p_alice = document.getElementById('ratio_alice_n').value;
+        const p_bob = document.getElementById('ratio_bob_n').value;
+        const message_length = document.getElementById('message_length_n').value;
+        const disconnect_percentage = document.getElementById('disconnect_percentage_n').value;
+        const response = await fetch(`/AliceNBob/?mode=${mode}&nb_bob=${nb_bob}&p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}`);
+
+
+        // const response = await fetch("/AliceNBob/");
+
+        if (!response.ok) {
+            console.error("Erreur:", response.statusText);
+            return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.trim() === '') continue; // Ignorer les lignes vides
+
+                try {
+                    // Parser la ligne en tant qu'objet JSON
+                    if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
+                        // const data = JSON.parse(line.slice(5));
+                        const data = JSON.parse(line);
+                        let disconnecteds = data.disconnecteds;
+
+                        for (let i = 0; i < disconnecteds.length; i++) {
+                            let bob = "Bob-" + disconnecteds[i];
+                            updateNode(bob, 'red');
                         }
-                    });
 
-                    myDiagram.commitTransaction("update nodes");
-                }
 
-                function deleteNode(nodeKey) {
-                    var node = myDiagram.model.findNodeDataForKey(nodeKey);
-                    if (node) {
-                        myDiagram.startTransaction("delete node");
-                        myDiagram.model.removeNodeData(node);
-                        myDiagram.commitTransaction("delete node");
+
+                        console.log(data); // Afficher dans la console
+                        // Afficher dans l'interface utilisateur
+                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+
+
                     } else {
-                        alert("Nœud introuvable");
-                    }
-                }
 
-                function findLink(fromNodeKey, toNodeKey) {
-                    return myDiagram.model.linkDataArray.find(link =>
-                        (link.from === fromNodeKey && link.to === toNodeKey) ||
-                        (link.from === toNodeKey && link.to === fromNodeKey));
-                }
+                        console.log(line);
 
-                function deleteLink(fromNodeKey, toNodeKey) {
-                    var link = findLink(fromNodeKey, toNodeKey);
-                    if (link) {
-                        myDiagram.startTransaction("delete link");
-                        myDiagram.model.removeLinkData(link);
-                        myDiagram.commitTransaction("delete link");
-                    } else {
-                        alert("Lien introuvable");
-                    }
-                }
-
-                function nodeClicked(e, node) {
-                    // updateNode(node.data.key);
-                }
-
-                function updateLink(fromNodeKey, toNodeKey, color) {
-                    var link = findLink(fromNodeKey, toNodeKey);
-                    if (link) {
-                        myDiagram.startTransaction("update link");
-                        myDiagram.model.setDataProperty(link, "color", color || "red");
-                        myDiagram.commitTransaction("update link");
-                    } else {
-                        alert("Lien introuvable");
-                    }
-                }
-
-                function linkClicked(e, link) {
-                    // alert("Lien cliqué entre " + link.data.from + " et " + link.data.to);
-                    // updateLink(link.data.from, link.data.to, "red");
-                }
-
-                _deleteNode = function () {
-                    var nodeKey = document.getElementById("nodes").value;
-                    deleteNode(nodeKey);
-                }
-
-                _deleteLink = function () {
-                    var fromNodeKey = "Alice";
-                    var toNodeKey = document.getElementById("nodes").value;
-                    deleteLink(fromNodeKey, toNodeKey);
-                }
-
-                function alice_bob() {
-                    myDiagram.layout = $(go.ForceDirectedLayout);
-                    // console.log({ layout: myDiagram.layout });
-
-                    myDiagram.nodeTemplate =
-                        $(go.Node, "Auto",
-                            { locationSpot: go.Spot.Center, click: nodeClicked },
-                            new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-                            $(go.Shape, "RoundedRectangle",
-                                { fill: "lightblue" },
-                                new go.Binding("fill", "color")),
-                            $(go.TextBlock,
-                                { margin: 8 },
-                                new go.Binding("text", "key"))
-                        );
-
-                    myDiagram.linkTemplate =
-                        $(go.Link,
-                            { routing: go.Link.Orthogonal, corner: 5, click: linkClicked },
-                            $(go.Shape, new go.Binding("stroke", "color"))
-                        );
-                    myDiagram.model = new go.GraphLinksModel(
-                        [
-                            { key: "Alice", loc: "0 0", color: "lightblue" },
-                            { key: "Bob", loc: "100 0", color: "lightblue" }
-                        ],
-                        [
-                            { from: "Alice", to: "Bob", color: "black" }
-                        ]
-                    );
-
-                }
-
-                function alice_mnist() {
-
-                    // remove diagram layout CircularLayout Sample
-                    myDiagram.layout = $(go.Layout);
-                    // console.log({ layout: myDiagram.layout });
-                    const rows = 28, cols = 28; // Taille de la grille
-                    const nodeSize = 100; // Taille d'une cellule
-
-                    myDiagram.nodeTemplate = $(
-                        go.Node,
-                        "Auto",
-                        { locationSpot: go.Spot.Center },
-                        $(
-                            go.Shape,
-                            "Rectangle",
-                            {
-                                fill: "white", // Couleur par défaut
-                                stroke: "#A2A2A2", // Couleur de la bordure
-                                strokeWidth: 1,
-                                width: nodeSize,
-                                height: nodeSize
-                            },
-                            new go.Binding("fill", "color") // Lie la couleur à la propriété "color"
-                        ),
-                        {
-                            click: (e, node) => {
-                                // Changer la couleur de la cellule au clic
-                                // const colors = ["white", "lightblue", "lightgreen", "pink", "yellow"];
-                                // const currentColor = node.data.color || "white";
-                                // const nextColor = colors[(colors.indexOf(currentColor) + 1) % colors.length] || colors[0];
-                                // myDiagram.model.setDataProperty(node.data, "color", nextColor);
-                                // alert key 
-                                alert(node.data.key);
-                                updateNode(node.data.key, 'red');
-                            }
-                        }
-                    );
-
-                    // Création de la grille
-                    const nodeDataArray = [];
-                    for (let i = 0; i < rows; i++) {
-                        for (let j = 0; j < cols; j++) {
-                            nodeDataArray.push({
-                                key: `${i}-${j}`, // Identifiant unique
-                                loc: new go.Point(j * nodeSize, i * nodeSize), // Position dans la grille
-                                color: "green" // Couleur initiale
-                            });
-                        }
                     }
 
-                    // Appliquer le modèle
-                    myDiagram.model = new go.GraphLinksModel({ nodeDataArray });
+                    // const data = JSON.parse(line);
+                    // console.log(data); // Afficher dans la console
+                    // // Afficher dans l'interface utilisateur
+                    // // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+                    // console.log(data);
+                } catch (error) {
+                    console.error('Erreur de parsing JSON :', error, line);
                 }
+            }
 
-                function mis() {
-                    const nodeSize = 100; // Taille d'une cellule
-                    myDiagram.nodeTemplate =
-                        $(go.Node, "Auto",
-                            { locationSpot: go.Spot.Center, click: nodeClicked },
-                            new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-                            $(go.Shape, "RoundedRectangle",
-                                { fill: "lightblue" },
-                                new go.Binding("fill", "color")),
-                            $(go.TextBlock,
-                                { margin: 8 },
-                                new go.Binding("text", "key"))
-                        );
+            // Afficher dans une div HTML
+            // document.getElementById("output").innerText += chunk;
+        }
+    }
 
-                    myDiagram.linkTemplate =
-                        $(go.Link,
-                            { routing: go.Link.Orthogonal, corner: 5, click: linkClicked },
-                            $(go.Shape, new go.Binding("stroke", "color"))
-                        );
-
-                    const myDiagramModel = generateGraph("bipartite", 6, {
-                        vertexColor: "lightgreen",
-                        edgeColor: "gray"
-                    });
-
-                    // Assigner le modèle au diagramme
-                    myDiagram.model = myDiagramModel;
-                }
-
-                function showLoader() {
-                    document.getElementById("loader").style.display = "block";
-                }
-
-                function hideLoader() {
-                    document.getElementById("loader").style.display = "none";
-                }
-
-                function updateProgress(progress) {
-                    document.getElementById("progressBar").value = progress;
-                    document.getElementById("progressText").innerText = progress + "%";
-                }
-
-                function alice_n_bob() {
-
-                    let totalNodes = document.getElementById('nb_bob_n').value;
-
-                    myDiagram.layout = $(go.ForceDirectedLayout);
-                    myDiagram.nodeTemplate =
-                        $(go.Node, "Auto",
-                            { locationSpot: go.Spot.Center, click: nodeClicked },
-                            new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-                            $(go.Shape, "RoundedRectangle",
-                                { fill: "lightblue" },
-                                new go.Binding("fill", "color")),
-                            $(go.TextBlock,
-                                { margin: 8 },
-                                new go.Binding("text", "key"))
-                        );
-
-                    myDiagram.linkTemplate =
-                        $(go.Link,
-                            { routing: go.Link.Orthogonal, corner: 5, click: linkClicked },
-                            $(go.Shape, new go.Binding("stroke", "color"))
-                        );
-
-                    myDiagram.model = new go.GraphLinksModel([{ key: "Alice", loc: "0 0", color: "lightblue" }]);
-                    showLoader();
-
-                    let createdNodes = 0;
-
-                    function addNodeWithProgress() {
-                        if (createdNodes < totalNodes) {
-                            var name = "Bob-" + createdNodes;
-                            addNode(name);
-                            createdNodes++;
-                            updateProgress((createdNodes / totalNodes) * 100);
-                            setTimeout(addNodeWithProgress, 100); // Ajoute un délai pour simuler une création plus lente
-                        } else {
-                            hideLoader();
-
-                        }
-                    }
-
-                    addNodeWithProgress();
-                }
-
-                function simulate_alice_bob() {
-
-                    var btn = document.getElementById('alice_bob_btn');
-                    if (btn.innerHTML == 'Stop') {
-                        btn.classList.remove('btn-danger');
-                        btn.classList.add('btn-success');
-                        btn.innerHTML = 'Start';
-                        simunlation_started = false;
-                        return;
-                    }
-
-                    btn.classList.remove('btn-success');
-                    btn.classList.add('btn-danger');
-                    btn.innerHTML = 'Stop';
-                    let p_alice = parseFloat(document.getElementById('ratio_alice').value);
-                    let p_bob = parseFloat(document.getElementById('ratio_bob').value);
-                    let message_length = parseInt(document.getElementById('message_length').value);
-                    let disconnect_percentage = parseInt(document.getElementById('disconnect_percentage').value);
+    function toggle_blur_ovelay(show = false) {
+        var botton_option = document.getElementById('botton_option');
+        var blur_box = document.getElementById('blur_box');
+        if (show) {
+            botton_option.classList.add('overlay');
+            blur_box.classList.add('blurred-background');
+            blur_box.classList.remove('d-none');
+        } else {
+            botton_option.classList.remove('overlay');
+            blur_box.classList.remove('blurred-background');
+            blur_box.classList.add('d-none');
+        }
 
 
-                    var e = document.getElementById("alice_bob");
-                    var mode = e.options[e.selectedIndex].value;
-                    simunlation_started = true;
-                    fetch_alice_bob(mode, p_alice, p_bob, message_length, disconnect_percentage);
-                    // simulateCommunication(p_alice, p_bob, steps);
-                }
+    }
 
-                async function simulate_alice_n_bob() {
-                    alice_n_bob();
-                    await fetch_alice_n_bob();
+    function _changeMode() {
+        var e = document.getElementById("mode-select");
+        mode = e.options[e.selectedIndex].value;
+        changeMode();
+    }
+
+    function changeMode() {
+
+        var e = document.getElementById("mode-select");
+        var title = document.getElementById('Titre');
+        // allowMove: false,
+
+        toggle_blur_ovelay(false);
+
+        // enable select graph type
+        var graph_type = document.getElementById('graph_type');
+        graph_type.disabled = false;
+
+        // get all box_options and  add class h-0
+        var box_options = document.getElementsByClassName('box_options');
+        // remove all box_options
+        for (var i = 0; i < box_options.length; i++) {
+            box_options[i].classList.remove('d-flex');
+            box_options[i].classList.add('d-none');
+        }
+
+        myDiagram.allowMove = true;
+
+        if (mode == 'alice_bob') {
+            alice_bob();
+            title.innerHTML = 'Alice-Bob';
+            // get box 
+            var box_alice_bob = document.getElementById('box_alice_bob');
+            box_alice_bob.classList.remove('d-none');
+            box_alice_bob.classList.add('d-flex');
+
+            toggle_blur_ovelay(true);
 
 
-                }
+        }
+        else if (mode == 'alice_n_bob') {
+            document.getElementById('nb_nodes').value =10;
+            alice_n_bob();
+            title.innerHTML = 'Alice-N-Bob';
+            let box = document.getElementById('box_alice_n_bob');
+            box.classList.remove('d-none');
+            box.classList.add('d-flex');
+            graph_type.disabled = true;
+            
+        }
+        else if (mode == 'alice_mnist') {
+            // alice_n_bob(784);
+            alice_mnist();
+            // desactiver les deplacements des Nodes 
+            myDiagram.allowMove = false;
+            title.innerHTML = 'Alice-NNIST';
+            let box = document.getElementById('box_Mnist');
+            box.classList.remove('d-none');
+            box.classList.add('d-flex');
 
-                async function fetch_alice_bob(mode = 'randomn', p_alice = 0.2, p_bob = 0.5, message_length = 10, disconnect_percentage = 2, message = '') {
-                    // const response = await fetch("/AliceBob/");
-                    const response = await fetch(`/AliceBob/?mode=${mode}&p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}&message=${message}`);
-                    let console_alice_bob_alice = document.getElementById('console_alice_bob_alice');
-                    let width_console_alice = console_alice_bob_alice.clientWidth;
-                    let case_width_alice = (width_console_alice / 4) - 3;
-                    console_alice_bob_alice.style.wordSpacing = case_width_alice + 'px';
+            toggle_blur_ovelay(true);
+        }
+        else if (mode == 'mis') {
+            // bob_alice();
+            // redraw();
 
-                    if (!response.ok) {
-                        console.error("Erreur:", response.statusText);
-                        return;
-                    }
+            title.innerHTML = 'MIS';
+            let box = document.getElementById('box_mis');
+            box.classList.remove('d-none');
+            box.classList.add('d-flex');
+            document.getElementById('nb_nodes').value =10;
+            mis();
+        }
+        var e = document.getElementById("mode-select");
+        e.value = mode;
 
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder('utf-8');
+    }
 
-                    while (simunlation_started) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
+    function update_nb_bob() {
+        var nb_bob = document.getElementById('nb_bob').value;
+        // alice_n_bob(nb_bob);
+    }
 
-                        const chunk = decoder.decode(value, { stream: true });
-                        const lines = chunk.split('\n');
+    function simulate_alice_mnist() {
+        let model = document.getElementById('model_mnist').value;
+        let drop_probability = document.getElementById('drop_probability').value;
+        let num_samples = document.getElementById('num_samples').value;
+        fetch_alice_mnist(model, drop_probability, num_samples);
+    }
 
-                        for (const line of lines) {
-                            if (line.trim() === '') continue; // Ignorer les lignes vides
+    async function fetch_alice_mnist(model = 'random', drop_probability = 0.6, num_samples = 10) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 28; // Largeur du canvas
+        canvas.height = 28; // Hauteur du canvas
+        const ctx = canvas.getContext('2d');
+        const response = await fetch(`/AliceMnist/?model=${model}&drop_probability=${drop_probability}&num_samples=${num_samples}`);
+        if (!response.ok) {
+            console.error("Erreur:", response.statusText);
+            return;
+        }
 
-                            try {
-                                // Parser la ligne en tant qu'objet JSON
-                                const data = JSON.parse(line);
-                                let alice_line = [data.step, data.alice, data.bob, data.guess];
-                                console_alice_bob_alice.value += alice_line.join(' ') + '\n';
-                                // scroll to bottom
-                                console_alice_bob_alice.scrollTop = console_alice_bob_alice.scrollHeight;
-                                // change Node color to red if data.disconneted is true
-                                if (data.disconnected) {
-                                    updateNode('Bob', 'red');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.trim() === '') continue; // Ignorer les lignes vides
+
+                try {
+                    // Parser la ligne en tant qu'objet JSON
+                    if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
+                        const data = JSON.parse(line);
+                        console.log(data); // Afficher dans la console
+                        // Afficher dans l'interface utilisateur
+                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+
+
+
+                        /* Gestion des noeuds desactivés et de l'image correspondante */
+
+                        // Récupérer les noeuds désactivés et les colories en rouge
+                        let droped_nodes = [];
+                        for (let i = 0; i < data.dropped.length; i++) {
+                            for (let j = 0; j < data.dropped[i].length; j++) {
+                                let key = `${i}-${j}`;
+                                if (data.dropped[i][j] === -1) {
+                                    // updateNode(key, 'red');
+                                    droped_nodes.push(key);
                                 }
-
-                            } catch (error) {
-                                console.error('Erreur de parsing JSON :', error, line);
                             }
+
                         }
+                        let all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
+                        updateNodes(all_nodes, 'green');
+                        updateNodes(droped_nodes, 'red');
 
-                        // Afficher dans une div HTML
-                        // document.getElementById("output").innerText += chunk;
-                    }
-                }
+                        // Afficher l'image dropée
+                        const imgDropped = document.getElementById('img-dropped');
+                        const imgData = ctx.createImageData(28, 28);
 
-                async function fetch_alice_n_bob() {
-
-                    const mode = document.getElementById('alice_bob_n').value;
-                    const nb_bob = document.getElementById('nb_bob_n').value;
-                    const p_alice = document.getElementById('ratio_alice_n').value;
-                    const p_bob = document.getElementById('ratio_bob_n').value;
-                    const message_length = document.getElementById('message_length_n').value;
-                    const disconnect_percentage = document.getElementById('disconnect_percentage_n').value;
-                    const response = await fetch(`/AliceNBob/?mode=${mode}&nb_bob=${nb_bob}&p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}`);
-
-
-                    // const response = await fetch("/AliceNBob/");
-
-                    if (!response.ok) {
-                        console.error("Erreur:", response.statusText);
-                        return;
-                    }
-
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder('utf-8');
-
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-
-                        const chunk = decoder.decode(value, { stream: true });
-                        const lines = chunk.split('\n');
-
-                        for (const line of lines) {
-                            if (line.trim() === '') continue; // Ignorer les lignes vides
-
-                            try {
-                                // Parser la ligne en tant qu'objet JSON
-                                if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
-                                    // const data = JSON.parse(line.slice(5));
-                                    const data = JSON.parse(line);
-                                    let disconnecteds = data.disconnecteds;
-
-                                    for (let i = 0; i < disconnecteds.length; i++) {
-                                        let bob = "Bob-" + disconnecteds[i];
-                                        updateNode(bob, 'red');
-                                    }
-
-
-
-                                    console.log(data); // Afficher dans la console
-                                    // Afficher dans l'interface utilisateur
-                                    // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
-
-
+                        for (let i = 0; i < 28; i++) {
+                            for (let j = 0; j < 28; j++) {
+                                const index = (i * 28 + j) * 4;
+                                if (data.dropped[i][j] === -1) {
+                                    imgData.data[index] = 255;
+                                    imgData.data[index + 1] = 0;
+                                    imgData.data[index + 2] = 0;
+                                    imgData.data[index + 3] = 255;
                                 } else {
-
-                                    console.log(line);
-
+                                    const value = data.dropped[i][j] > 0.5 ? 255 : 0;
+                                    imgData.data[index] = value;
+                                    imgData.data[index + 1] = value;
+                                    imgData.data[index + 2] = value;
+                                    imgData.data[index + 3] = 255;
                                 }
 
-                                // const data = JSON.parse(line);
-                                // console.log(data); // Afficher dans la console
-                                // // Afficher dans l'interface utilisateur
-                                // // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
-                                // console.log(data);
-                            } catch (error) {
-                                console.error('Erreur de parsing JSON :', error, line);
                             }
                         }
 
-                        // Afficher dans une div HTML
-                        // document.getElementById("output").innerText += chunk;
-                    }
-                }
+                        ctx.putImageData(imgData, 0, 0);
+                        imgDropped.style.backgroundImage = `url(${canvas.toDataURL()})`;
 
-                function changeMode() {
+                        // Afficher l'image originale
+                        const imgOriginal = document.getElementById('img-original');
+                        const imgDataOriginal = ctx.createImageData(28, 28);
 
-                    var e = document.getElementById("mode-select");
-                    var mode = e.options[e.selectedIndex].value;
-                    var title = document.getElementById('Titre');
-
-                    // get all box_options and  add class h-0
-                    var box_options = document.getElementsByClassName('box_options');
-                    // remove all box_options
-                    for (var i = 0; i < box_options.length; i++) {
-                        box_options[i].classList.remove('d-flex');
-                        box_options[i].classList.add('d-none');
-                    }
-
-                    if (mode == 'alice_bob') {
-                        alice_bob();
-                        title.innerHTML = 'Alice-Bob';
-                        // get box 
-                        var box_alice_bob = document.getElementById('box_alice_bob');
-                        box_alice_bob.classList.remove('d-none');
-                        box_alice_bob.classList.add('d-flex');
-                    }
-                    else if (mode == 'alice_n_bob') {
-                        alice_n_bob();
-                        title.innerHTML = 'Alice-N-Bob';
-                        let box = document.getElementById('box_alice_n_bob');
-                        box.classList.remove('d-none');
-                        box.classList.add('d-flex');
-                    }
-                    else if (mode == 'alice_mnist') {
-                        // alice_n_bob(784);
-                        alice_mnist();
-                        title.innerHTML = 'Alice-NNIST';
-                        let box = document.getElementById('box_Mnist');
-                        box.classList.remove('d-none');
-                        box.classList.add('d-flex');
-                    }
-                    else if (mode == 'mis') {
-                        // bob_alice();
-                        // redraw();
-                        title.innerHTML = 'MIS';
-                        let box = document.getElementById('box_mis');
-                        box.classList.remove('d-none');
-                        box.classList.add('d-flex');
-                        mis();
-                    }
-                }
-
-                function update_nb_bob() {
-                    var nb_bob = document.getElementById('nb_bob').value;
-                    // alice_n_bob(nb_bob);
-                }
-
-
-                function simulate_alice_mnist() {
-                    let model = document.getElementById('model_mnist').value;
-                    let drop_probability = document.getElementById('drop_probability').value;
-                    let num_samples = document.getElementById('num_samples').value;
-                    fetch_alice_mnist(model, drop_probability, num_samples);
-                }
-
-                async function fetch_alice_mnist(model = 'random', drop_probability = 0.6, num_samples = 10) {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 28; // Largeur du canvas
-                    canvas.height = 28; // Hauteur du canvas
-                    const ctx = canvas.getContext('2d');
-                    const response = await fetch(`/AliceMnist/?model=${model}&drop_probability=${drop_probability}&num_samples=${num_samples}`);
-                    if (!response.ok) {
-                        console.error("Erreur:", response.statusText);
-                        return;
-                    }
-
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder('utf-8');
-
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-
-                        const chunk = decoder.decode(value, { stream: true });
-                        const lines = chunk.split('\n');
-
-                        for (const line of lines) {
-                            if (line.trim() === '') continue; // Ignorer les lignes vides
-
-                            try {
-                                // Parser la ligne en tant qu'objet JSON
-                                if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
-                                    const data = JSON.parse(line);
-                                    console.log(data); // Afficher dans la console
-                                    // Afficher dans l'interface utilisateur
-                                    // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
-
-
-
-                                    /* Gestion des noeuds desactivés et de l'image correspondante */
-
-                                    // Récupérer les noeuds désactivés et les colories en rouge
-                                    let droped_nodes = [];
-                                    for (let i = 0; i < data.dropped.length; i++) {
-                                        for (let j = 0; j < data.dropped[i].length; j++) {
-                                            let key = `${i}-${j}`;
-                                            if (data.dropped[i][j] === -1) {
-                                                // updateNode(key, 'red');
-                                                droped_nodes.push(key);
-                                            }
-                                        }
-
-                                    }
-                                    let all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
-                                    updateNodes(all_nodes, 'green');
-                                    updateNodes(droped_nodes, 'red');
-
-                                    // Afficher l'image dropée
-                                    const imgDropped = document.getElementById('img-dropped');
-                                    const imgData = ctx.createImageData(28, 28);
-
-                                    for (let i = 0; i < 28; i++) {
-                                        for (let j = 0; j < 28; j++) {
-                                            const index = (i * 28 + j) * 4;
-                                            if (data.dropped[i][j] === -1) {
-                                                imgData.data[index] = 255;
-                                                imgData.data[index + 1] = 0;
-                                                imgData.data[index + 2] = 0;
-                                                imgData.data[index + 3] = 255;
-                                            } else {
-                                                const value = data.dropped[i][j] > 0.5 ? 255 : 0;
-                                                imgData.data[index] = value;
-                                                imgData.data[index + 1] = value;
-                                                imgData.data[index + 2] = value;
-                                                imgData.data[index + 3] = 255;
-                                            }
-
-                                        }
-                                    }
-
-                                    ctx.putImageData(imgData, 0, 0);
-                                    imgDropped.style.backgroundImage = `url(${canvas.toDataURL()})`;
-
-                                    // Afficher l'image originale
-                                    const imgOriginal = document.getElementById('img-original');
-                                    const imgDataOriginal = ctx.createImageData(28, 28);
-
-                                    for (let i = 0; i < 28; i++) {
-                                        for (let j = 0; j < 28; j++) {
-                                            const index = (i * 28 + j) * 4;
-                                            const value = data.original[i][j] > 0.5 ? 255 : 0;
-                                            imgDataOriginal.data[index] = value;
-                                            imgDataOriginal.data[index + 1] = value;
-                                            imgDataOriginal.data[index + 2] = value;
-                                            imgDataOriginal.data[index + 3] = 255;
-                                        }
-                                    }
-
-                                    ctx.putImageData(imgDataOriginal, 0, 0);
-                                    imgOriginal.style.backgroundImage = `url(${canvas.toDataURL()})`;
-
-
-                                    // Afficher l'image reconstituée
-                                    const imgReconstructed = document.getElementById('img-reconstructed');
-                                    const imgDataReconstructed = ctx.createImageData(28, 28);
-
-                                    for (let i = 0; i < 28; i++) {
-                                        for (let j = 0; j < 28; j++) {
-                                            const index = (i * 28 + j) * 4;
-                                            const value = data.reconstructed[i][j] * 255;
-                                            imgDataReconstructed.data[index] = value;
-                                            imgDataReconstructed.data[index + 1] = value;
-                                            imgDataReconstructed.data[index + 2] = value;
-                                            imgDataReconstructed.data[index + 3] = 255;
-                                        }
-
-                                    }
-
-
-                                    ctx.putImageData(imgDataReconstructed, 0, 0);
-                                    imgReconstructed.style.backgroundImage = `url(${canvas.toDataURL()})`;
-
-
-
-                                } else {
-                                    console.log(line);
-                                }
-                            } catch (error) {
-                                console.error('Erreur de parsing JSON :', error, line);
+                        for (let i = 0; i < 28; i++) {
+                            for (let j = 0; j < 28; j++) {
+                                const index = (i * 28 + j) * 4;
+                                const value = data.original[i][j] > 0.5 ? 255 : 0;
+                                imgDataOriginal.data[index] = value;
+                                imgDataOriginal.data[index + 1] = value;
+                                imgDataOriginal.data[index + 2] = value;
+                                imgDataOriginal.data[index + 3] = 255;
                             }
                         }
 
-                        // Afficher dans une div HTML
-                        // document.getElementById("output").innerText += chunk;
-                    }
-                }
+                        ctx.putImageData(imgDataOriginal, 0, 0);
+                        imgOriginal.style.backgroundImage = `url(${canvas.toDataURL()})`;
 
 
-                function reset_mnist_colors() {
-                    let nodes = myDiagram.model.nodeDataArray;
-                    for (let i = 0; i < nodes.length; i++) {
-                        updateNode(nodes[i].key, 'lightblue');
-                    }
-                }
+                        // Afficher l'image reconstituée
+                        const imgReconstructed = document.getElementById('img-reconstructed');
+                        const imgDataReconstructed = ctx.createImageData(28, 28);
 
-                function _generateGraph() {
-                    const vertices = document.getElementById('nb_nodes').value;
-                    const type = document.getElementById('graph_type').value;
-
-                    const myDiagramModel = generateGraph(type, vertices, {});
-                    myDiagram.model = myDiagramModel;
-                }
-
-                function generateGraph(type, numVertices, options = {}) {
-
-                    const vertices = [];
-                    const edges = [];
-
-                    // Générer les sommets
-                    for (let i = 0; i < numVertices; i++) {
-                        const vertex = {
-                            key: `Node${i + 1}`, // Clé unique pour chaque sommet
-                            loc: `${i * 100} 0`, // Position (x y) du sommet (peut être ignorée si un layout est utilisé)
-                            color: options.vertexColor || "lightblue" // Couleur du sommet
-                        };
-                        vertices.push(vertex);
-                    }
-
-                    // Générer les arêtes en fonction du type de graphe
-                    if (type === "complete") {
-                        // Graphe complet : chaque sommet est relié à tous les autres
-                        for (let i = 0; i < numVertices; i++) {
-                            for (let j = i + 1; j < numVertices; j++) {
-                                edges.push({
-                                    from: vertices[i].key,
-                                    to: vertices[j].key,
-                                    color: options.edgeColor || "black"
-                                });
+                        for (let i = 0; i < 28; i++) {
+                            for (let j = 0; j < 28; j++) {
+                                const index = (i * 28 + j) * 4;
+                                const value = data.reconstructed[i][j] * 255;
+                                imgDataReconstructed.data[index] = value;
+                                imgDataReconstructed.data[index + 1] = value;
+                                imgDataReconstructed.data[index + 2] = value;
+                                imgDataReconstructed.data[index + 3] = 255;
                             }
-                        }
-                    } else if (type === "cycle") {
-                        // Graphe cyclique : chaque sommet est relié à son voisin
-                        for (let i = 0; i < numVertices; i++) {
-                            const next = (i + 1) % numVertices; // Relier le dernier au premier
-                            edges.push({
-                                from: vertices[i].key,
-                                to: vertices[next].key,
-                                color: options.edgeColor || "black"
-                            });
-                        }
-                    } else if (type === "random") {
-                        // Graphe aléatoire : générer des arêtes aléatoirement
-                        const numEdges = options.numEdges || Math.floor(numVertices * 1.5); // Nombre d'arêtes par défaut
-                        for (let i = 0; i < numEdges; i++) {
-                            const from = Math.floor(Math.random() * numVertices);
-                            const to = Math.floor(Math.random() * numVertices);
-                            if (from !== to) { // Éviter les boucles
-                                edges.push({
-                                    from: vertices[from].key,
-                                    to: vertices[to].key,
-                                    color: options.edgeColor || "black"
-                                });
-                            }
-                        }
-                    } else if (type === "tree") {
-                        // Arbre : chaque sommet est connecté à un parent (sauf la racine)
-                        for (let i = 1; i < numVertices; i++) {
-                            const parent = Math.floor(Math.random() * i); // Choisir un parent aléatoire parmi les sommets précédents
-                            edges.push({
-                                from: vertices[parent].key,
-                                to: vertices[i].key,
-                                color: options.edgeColor || "black"
-                            });
-                        }
-                    } else if (type === "bipartite") {
-                        // Biparti : diviser les sommets en deux ensembles et connecter entre eux
-                        const set1 = Math.floor(numVertices / 2);
-                        for (let i = 0; i < set1; i++) {
-                            for (let j = set1; j < numVertices; j++) {
-                                edges.push({
-                                    from: vertices[i].key,
-                                    to: vertices[j].key,
-                                    color: options.edgeColor || "black"
-                                });
-                            }
-                        }
-                    } else if (type === "grid") {
-                        // Grille : disposer les sommets en grille et connecter les voisins
-                        const rows = Math.floor(Math.sqrt(numVertices));
-                        const cols = Math.ceil(numVertices / rows);
-                        for (let i = 0; i < rows; i++) {
-                            for (let j = 0; j < cols; j++) {
-                                const index = i * cols + j;
-                                if (index >= numVertices) break;
-                                if (j < cols - 1 && index + 1 < numVertices) { // Connecter à droite
-                                    edges.push({
-                                        from: vertices[index].key,
-                                        to: vertices[index + 1].key,
-                                        color: options.edgeColor || "black"
-                                    });
-                                }
-                                if (i < rows - 1 && index + cols < numVertices) { // Connecter en bas
-                                    edges.push({
-                                        from: vertices[index].key,
-                                        to: vertices[index + cols].key,
-                                        color: options.edgeColor || "black"
-                                    });
-                                }
-                            }
-                        }
-                    } else if (type === "star") {
-                        // Étoile : un sommet central connecté à tous les autres
-                        const center = 0; // Le premier sommet est le centre
-                        for (let i = 1; i < numVertices; i++) {
-                            edges.push({
-                                from: vertices[center].key,
-                                to: vertices[i].key,
-                                color: options.edgeColor || "black"
-                            });
-                        }
-                    } else if (type === "path") {
-                        // Linéaire : les sommets sont connectés en ligne
-                        for (let i = 0; i < numVertices - 1; i++) {
-                            edges.push({
-                                from: vertices[i].key,
-                                to: vertices[i + 1].key,
-                                color: options.edgeColor || "black"
-                            });
-                        }
-                    } else if (type === "custom") {
-                        // Graphe personnalisé : à implémenter
-                    
-                    } else if (type === "regular") {
-                        //Graphe régulier 
-                        const degree = options.degree || 2;
-                        for (let i = 0; i < numVertices; i++) {
-                            for (let j = 1; j <= degree; j++) {
-                                const to = (i + j) % numVertices;
-                                edges.push({
-                                    from: vertices[i].key,
-                                    to: vertices[to].key,
-                                    color: options.edgeColor || "black"
-                                });
-                            }
-                        }
-                    } else if (type==="planaire")  {
-                        //Graphe planaire
-                        const degree = options.degree || 2;
-                        for (let i = 0; i < numVertices; i++) {
-                            for (let j = 1; j <= degree; j++) {
-                                const to = (i + j) % numVertices;
-                                edges.push({
-                                    from: vertices[i].key,
-                                    to: vertices[to].key,
-                                    color: options.edgeColor || "black"
-                                });
-                            }
-                        }
-                    } else if (type === "eulerien") {
-                        //Graphe eulerien
-                        const degree = options.degree || 2;
-                        for (let i = 0; i < numVertices; i++) {
-                            for (let j = 1; j <= degree; j++) {
-                                const to = (i + j) % numVertices;
-                                edges.push({
-                                    from: vertices[i].key,
-                                    to: vertices[to].key,
-                                    color: options.edgeColor || "black"
-                                });
-                            }
-                        }
 
-                    } else if (type === "hamiltonien") {
-                        //Graphe hamiltonien
-                        const degree = options.degree || 2;
-                        for (let i = 0; i < numVertices; i++) {
-                            for (let j = 1; j <= degree; j++) {
-                                const to = (i + j) % numVertices;
-                                edges.push({
-                                    from: vertices[i].key,
-                                    to: vertices[to].key,
-                                    color: options.edgeColor || "black"
-                                });
-                            }
                         }
 
 
-                    
+                        ctx.putImageData(imgDataReconstructed, 0, 0);
+                        imgReconstructed.style.backgroundImage = `url(${canvas.toDataURL()})`;
+
+
 
                     } else {
-                        throw new Error("Type de graphe non supporté. Choisissez entre 'complete', 'cycle', 'random', 'tree', 'bipartite', 'grid', 'star', 'path', 'custom', 'regular', 'planaire', 'eulerien', 'hamiltonien'");
+                        console.log(line);
                     }
-
-                    // Créer le modèle GraphLinksModel
-                    const model = new go.GraphLinksModel(vertices, edges);
-
-                    // Assigner le layout idéal en fonction du type de graphe
-                    let layout;
-                    if (type === "complete" || type === "cycle" || type === "star") {
-                        layout = new go.CircularLayout(); // Idéal pour les graphes complets, cycliques et étoiles
-                    } else if (type === "random") {
-                        layout = new go.ForceDirectedLayout(); // Idéal pour les graphes aléatoires
-                    } else if (type === "tree") {
-                        layout = new go.TreeLayout(); // Idéal pour les arbres
-                    } else if (type === "bipartite") {
-                        layout = new go.LayeredDigraphLayout(); // Idéal pour les graphes bipartis
-                    } else if (type === "grid") {
-                        layout = new go.GridLayout(); // Idéal pour les grilles
-                    } else if (type === "path") {
-                        layout = new go.LayeredDigraphLayout(); // Idéal pour les graphes linéaires
-                    }
-
-                    // Assigner le layout au diagramme
-                    if (layout) {
-                        myDiagram.layout = layout;
-                    }
-
-                    return model;
+                } catch (error) {
+                    console.error('Erreur de parsing JSON :', error, line);
                 }
-                function findMIS(graphModel) {
-                    const nodes = graphModel.nodeDataArray; // Liste des nœuds
-                    const edges = graphModel.linkDataArray; // Liste des arêtes
-                    const mis = new Set(); // Ensemble pour stocker le MIS
+            }
 
-                    // Créer une map pour stocker les voisins de chaque nœud
-                    const neighbors = new Map();
-                    for (const node of nodes) {
-                        neighbors.set(node.key, new Set());
-                    }
-                    for (const edge of edges) {
-                        neighbors.get(edge.from).add(edge.to);
-                        neighbors.get(edge.to).add(edge.from);
-                    }
+            // Afficher dans une div HTML
+            // document.getElementById("output").innerText += chunk;
+        }
+    }
 
-                    // Fonction pour vérifier si un nœud peut rejoindre le MIS
-                    function canJoinMIS(nodeKey) {
-                        for (const neighbor of neighbors.get(nodeKey)) {
-                            if (mis.has(neighbor)) {
-                                return false; // Un voisin est déjà dans le MIS
-                            }
-                        }
-                        return true;
-                    }
+    function reset_mnist_colors() {
+        let nodes = myDiagram.model.nodeDataArray;
+        for (let i = 0; i < nodes.length; i++) {
+            updateNode(nodes[i].key, 'lightblue');
+        }
+    }
 
-                    // Simulation des tours
-                    let remainingNodes = new Set(nodes.map(node => node.key)); // Nœuds restants
-                    while (remainingNodes.size > 0) {
-                        // Chaque nœud envoie aléatoirement 0 ou 1
-                        const messages = new Map();
-                        for (const nodeKey of remainingNodes) {
-                            messages.set(nodeKey, Math.random() < 0.5 ? 0 : 1); // 0 ou 1 aléatoire
-                        }
+    function _generateGraph() {
+        const vertices = document.getElementById('nb_nodes').value;
+        const type = document.getElementById('graph_type').value;
 
-                        // Vérifier les nœuds qui peuvent rejoindre le MIS
-                        for (const nodeKey of remainingNodes) {
-                            if (messages.get(nodeKey) === 1) {
-                                let allNeighborsSendZero = true;
-                                for (const neighbor of neighbors.get(nodeKey)) {
-                                    if (messages.get(neighbor) === 1) {
-                                        allNeighborsSendZero = false;
-                                        break;
-                                    }
-                                }
-                                if (allNeighborsSendZero && canJoinMIS(nodeKey)) {
-                                    mis.add(nodeKey); // Ajouter au MIS
-                                }
-                            }
-                        }
+        const myDiagramModel = generateGraph(type, vertices, {});
+        myDiagram.model = myDiagramModel;
+    }
 
-                        // Mettre à jour les nœuds restants
-                        for (const nodeKey of mis) {
-                            remainingNodes.delete(nodeKey); // Retirer les nœuds du MIS
-                            for (const neighbor of neighbors.get(nodeKey)) {
-                                remainingNodes.delete(neighbor); // Retirer les voisins
-                            }
-                        }
-                    }
+    function generateGraph(type, numVertices, options = {}) {
 
-                    return Array.from(mis); // Retourner le MIS sous forme de tableau
+        const vertices = [];
+        const edges = [];
+
+        type = (mode == 'alice_n_bob') ? 'Alice_n_bob' : type;
+
+        let Name = "Node"
+        if (type === "Alice_n_bob") {
+            Name = "Bob";
+        }else{
+            document.getElementById('graph_type').value = type;
+        }
+
+
+        // Générer les sommets
+        for (let i = 0; i < numVertices; i++) {
+            const vertex = {
+                key: `${Name}-${i + 1}`, // Clé unique pour chaque sommet
+                // loc: `${i * 100} 0`, // Position (x y) du sommet (peut être ignorée si un layout est utilisé)
+                color: options.vertexColor || "lightblue" // Couleur du sommet
+            };
+            vertices.push(vertex);
+        }
+
+        // Générer les arêtes en fonction du type de graphe
+        if (type === "complete") {
+            // Graphe complet : chaque sommet est relié à tous les autres
+            for (let i = 0; i < numVertices; i++) {
+                for (let j = i + 1; j < numVertices; j++) {
+                    edges.push({
+                        from: vertices[i].key,
+                        to: vertices[j].key,
+                        color: options.edgeColor || "black"
+                    });
                 }
-                function simulate_mis() {
-                    const mis = findMIS(myDiagram.model);
-                    console.log("Maximal Independent Set (MIS):", mis);
+            }
+        } 
+        else if (type === "cycle") {
+            // Graphe cyclique : chaque sommet est relié à son voisin
+            for (let i = 0; i < numVertices; i++) {
+                const next = (i + 1) % numVertices; // Relier le dernier au premier
+                edges.push({
+                    from: vertices[i].key,
+                    to: vertices[next].key,
+                    color: options.edgeColor || "black"
+                });
+            }
+        } 
+        else if (type === "random") {
+            // Graphe aléatoire : générer des arêtes aléatoirement
+            const numEdges = options.numEdges || Math.floor(numVertices * 1.5); // Nombre d'arêtes par défaut
+            for (let i = 0; i < numEdges; i++) {
+                const from = Math.floor(Math.random() * numVertices);
+                const to = Math.floor(Math.random() * numVertices);
+                if (from !== to) { // Éviter les boucles
+                    edges.push({
+                        from: vertices[from].key,
+                        to: vertices[to].key,
+                        color: options.edgeColor || "black"
+                    });
+                }
+            }
+        } 
+        else if (type === "tree") {
+            // Arbre : chaque sommet est connecté à un parent (sauf la racine)
+            for (let i = 1; i < numVertices; i++) {
+                const parent = Math.floor(Math.random() * i); // Choisir un parent aléatoire parmi les sommets précédents
+                edges.push({
+                    from: vertices[parent].key,
+                    to: vertices[i].key,
+                    color: options.edgeColor || "black"
+                });
+            }
+        } 
+        else if (type === "bipartite") {
+            // Biparti : diviser les sommets en deux ensembles et connecter entre eux
+            const set1 = Math.floor(numVertices / 2);
+            for (let i = 0; i < set1; i++) {
+                for (let j = set1; j < numVertices; j++) {
+                    edges.push({
+                        from: vertices[i].key,
+                        to: vertices[j].key,
+                        color: options.edgeColor || "black"
+                    });
+                }
+            }
+        } 
+        else if (type === "grid") {
+            // Grille : disposer les sommets en grille et connecter les voisins
+            const rows = Math.floor(Math.sqrt(numVertices));
+            const cols = Math.ceil(numVertices / rows);
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const index = i * cols + j;
+                    if (index >= numVertices) break;
+                    if (j < cols - 1 && index + 1 < numVertices) { // Connecter à droite
+                        edges.push({
+                            from: vertices[index].key,
+                            to: vertices[index + 1].key,
+                            color: options.edgeColor || "black"
+                        });
+                    }
+                    if (i < rows - 1 && index + cols < numVertices) { // Connecter en bas
+                        edges.push({
+                            from: vertices[index].key,
+                            to: vertices[index + cols].key,
+                            color: options.edgeColor || "black"
+                        });
+                    }
+                }
+            }
+        } 
+        else if (type === "star") {
+            // Étoile : un sommet central connecté à tous les autres
+            const center = 0; // Le premier sommet est le centre
+            for (let i = 1; i < numVertices; i++) {
+                edges.push({
+                    from: vertices[center].key,
+                    to: vertices[i].key,
+                    color: options.edgeColor || "black"
+                });
+            }
+        } 
+        else if (type === "path") {
+            // Linéaire : les sommets sont connectés en ligne
+            for (let i = 0; i < numVertices - 1; i++) {
+                edges.push({
+                    from: vertices[i].key,
+                    to: vertices[i + 1].key,
+                    color: options.edgeColor || "black"
+                });
+            }
+        } 
+        else if (type === "custom") {
+            // Graphe personnalisé : à implémenter
 
-                    // Mettre en évidence les nœuds du MIS dans le diagramme
-                    for (const node of myDiagram.model.nodeDataArray) {
-                        if (mis.includes(node.key)) {
-                            node.color = "green"; // Colorer les nœuds du MIS en vert
+        } 
+        else if (type === "regular") {
+            //Graphe régulier 
+            const degree = options.degree || 2;
+            for (let i = 0; i < numVertices; i++) {
+                for (let j = 1; j <= degree; j++) {
+                    const to = (i + j) % numVertices;
+                    edges.push({
+                        from: vertices[i].key,
+                        to: vertices[to].key,
+                        color: options.edgeColor || "black"
+                    });
+                }
+            }
+        } 
+        else if (type === "planaire") {
+            //Graphe planaire
+            const degree = options.degree || 2;
+            for (let i = 0; i < numVertices; i++) {
+                for (let j = 1; j <= degree; j++) {
+                    const to = (i + j) % numVertices;
+                    edges.push({
+                        from: vertices[i].key,
+                        to: vertices[to].key,
+                        color: options.edgeColor || "black"
+                    });
+                }
+            }
+        } 
+        else if (type === "eulerien") {
+            //Graphe eulerien
+            const degree = options.degree || 2;
+            for (let i = 0; i < numVertices; i++) {
+                for (let j = 1; j <= degree; j++) {
+                    const to = (i + j) % numVertices;
+                    edges.push({
+                        from: vertices[i].key,
+                        to: vertices[to].key,
+                        color: options.edgeColor || "black"
+                    });
+                }
+            }
+
+        } 
+        else if (type === "hamiltonien") {
+            //Graphe hamiltonien
+            const degree = options.degree || 2;
+            for (let i = 0; i < numVertices; i++) {
+                for (let j = 1; j <= degree; j++) {
+                    const to = (i + j) % numVertices;
+                    edges.push({
+                        from: vertices[i].key,
+                        to: vertices[to].key,
+                        color: options.edgeColor || "black"
+                    });
+                }
+            }
+
+        } 
+        else if (type = "Alice_n_bob") {
+            // create Alice 
+            vertices.push({
+                key: "Alice", // Clé unique pour chaque sommet
+                loc: `0 0`, // Position (x y) du sommet (peut être ignorée si un layout est utilisé)
+                color: options.vertexColor || "lightblue" // Couleur du sommet
+            });
+            for (let i = 0; i < numVertices; i++) {
+                edges.push({
+                    from: "Alice",
+                    to: `${Name}-${i + 1}`,
+                    color: options.edgeColor || "black"
+                });
+            }
+
+        } 
+        else {
+            throw new Error("Type de graphe non supporté. Choisissez entre 'complete', 'cycle', 'random', 'tree', 'bipartite', 'grid', 'star', 'path', 'custom', 'regular', 'planaire', 'eulerien', 'hamiltonien'");
+        }
+
+        // Créer le modèle GraphLinksModel
+        const model = new go.GraphLinksModel(vertices, edges);
+
+        // Assigner le layout idéal en fonction du type de graphe
+
+        if (type === "complete" || type === "cycle" || type === "star") {
+            layout = "circular";
+        } else if (type === "random") {
+            layout = "force";
+        } else if (type === "tree") {
+            layout = "tree";
+        } else if (type === "bipartite") {
+            layout = "layered";
+        } else if (type === "grid") {
+            layout = "grid";
+        } else if (type === "path") {
+            layout = "layered";
+        }
+        else if (type === "regular") {
+            layout = "force";
+        }
+        else if (type === "planaire") {
+            layout = "force";
+        }
+        else if (type === "eulerien") {
+            layout = "force";
+        }
+        else if (type === "hamiltonien") {
+            layout = "force";
+        }
+        else if (type === "Alice_n_bob") {
+            layout = "force";
+        }
+        else {
+            layout = "force";
+        }
+
+        // Assigner le layout au diagramme
+        if (layout) {
+            changeLayout();
+        }
+
+        
+
+        return model;
+    }
+    function findMIS(graphModel) {
+        const nodes = graphModel.nodeDataArray; // Liste des nœuds
+        const edges = graphModel.linkDataArray; // Liste des arêtes
+        const mis = new Set(); // Ensemble pour stocker le MIS
+
+        // Créer une map pour stocker les voisins de chaque nœud
+        const neighbors = new Map();
+        for (const node of nodes) {
+            neighbors.set(node.key, new Set());
+        }
+        for (const edge of edges) {
+            neighbors.get(edge.from).add(edge.to);
+            neighbors.get(edge.to).add(edge.from);
+        }
+
+        // Fonction pour vérifier si un nœud peut rejoindre le MIS
+        function canJoinMIS(nodeKey) {
+            for (const neighbor of neighbors.get(nodeKey)) {
+                if (mis.has(neighbor)) {
+                    return false; // Un voisin est déjà dans le MIS
+                }
+            }
+            return true;
+        }
+
+        // Simulation des tours
+        let remainingNodes = new Set(nodes.map(node => node.key)); // Nœuds restants
+        while (remainingNodes.size > 0) {
+            // Chaque nœud envoie aléatoirement 0 ou 1
+            const messages = new Map();
+            for (const nodeKey of remainingNodes) {
+                messages.set(nodeKey, Math.random() < 0.5 ? 0 : 1); // 0 ou 1 aléatoire
+            }
+
+            // Vérifier les nœuds qui peuvent rejoindre le MIS
+            for (const nodeKey of remainingNodes) {
+                if (messages.get(nodeKey) === 1) {
+                    let allNeighborsSendZero = true;
+                    for (const neighbor of neighbors.get(nodeKey)) {
+                        if (messages.get(neighbor) === 1) {
+                            allNeighborsSendZero = false;
+                            break;
                         }
                     }
-                    myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
-
+                    if (allNeighborsSendZero && canJoinMIS(nodeKey)) {
+                        mis.add(nodeKey); // Ajouter au MIS
+                    }
                 }
+            }
 
-                function changeLayout() {
-                    var e = document.getElementById("layout");
-                    var layout = e.options[e.selectedIndex].value;
-                    if (layout == 'force') {
-                        myDiagram.layout = $(go.ForceDirectedLayout);
-                    }
-                    else if (layout == 'circular') {
-                        myDiagram.layout = $(go.CircularLayout);
-                    }
-                    else if (layout == 'layered') {
-                        myDiagram.layout = $(go.LayeredDigraphLayout);
-                    }
-                    else if (layout == 'grid') {
-                        myDiagram.layout = $(go.GridLayout);
-                    }
-                    else if (layout == 'tree') {
-                        myDiagram.layout = $(go.TreeLayout);
-                    }
-                
+            // Mettre à jour les nœuds restants
+            for (const nodeKey of mis) {
+                remainingNodes.delete(nodeKey); // Retirer les nœuds du MIS
+                for (const neighbor of neighbors.get(nodeKey)) {
+                    remainingNodes.delete(neighbor); // Retirer les voisins
                 }
+            }
+        }
+
+        return Array.from(mis); // Retourner le MIS sous forme de tableau
+    }
+    function simulate_mis() {
+        const mis = findMIS(myDiagram.model);
+        console.log("Maximal Independent Set (MIS):", mis);
+
+        // Mettre en évidence les nœuds du MIS dans le diagramme
+        for (const node of myDiagram.model.nodeDataArray) {
+            if (mis.includes(node.key)) {
+                node.color = "green"; // Colorer les nœuds du MIS en vert
+            }
+        }
+        myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
+
+    }
+
+    function _changeLayout() {
+        const e = document.getElementById("layout");
+        layout = e.options[e.selectedIndex].value;
+        changeLayout();
+
+    }
+
+    function changeLayout() {
+
+        if (layout == 'force') {
+            myDiagram.layout = $(go.ForceDirectedLayout); // pour les graphes aléatoires
+        }
+        else if (layout == 'circular') {
+            myDiagram.layout = $(go.CircularLayout); // pour les graphes complets, cycliques et étoiles
+        }
+        else if (layout == 'layered') {
+            myDiagram.layout = $(go.LayeredDigraphLayout); // pour les graphes bipartis et linéaires
+        }
+        else if (layout == 'grid') {
+            myDiagram.layout = $(go.GridLayout); // pour les grilles
+        }
+        else if (layout == 'tree') {
+            myDiagram.layout = $(go.TreeLayout); // pour les arbres
+        }
+        else if (layout == 'layout') {
+            myDiagram.layout = $(go.Layout); // pour les graphes aléatoires
+        }
+        else {
+            myDiagram.layout = $(go.ForceDirectedLayout); // pour les graphes aléatoires
+        }
+        const e = document.getElementById("layout");
+        e.value = layout;
+        myDiagram.updateAllTargetBindings();
+
+    }
 
 
 
-                (() => {
-                    //console.log("jQuery ready");
-                    // bob_alice();
-                    // redraw();
-                    // JAVA  DROPDOWN
-                    // Document.ready(function () {
-                    //     $('.dropdown-toggle').dropdown();
-                    // });
-                })();
+    (() => {
+        //console.log("jQuery ready");
+        // bob_alice();
+        // redraw();
+        // JAVA  DROPDOWN
+        // Document.ready(function () {
+        //     $('.dropdown-toggle').dropdown();
+        // });
+
+        changeMode();
+    })();
 
 
 
-                // Initialisation au chargement de la page
-                // window.addEventListener("DOMContentLoaded", init);
-            </script>
-            {% endblock %}
+    // Initialisation au chargement de la page
+    // window.addEventListener("DOMContentLoaded", init);
+</script>
+{% endblock %}

@@ -255,10 +255,10 @@ def AliceNBob(request):
         Lance une simulation améliorée avec plusieurs Bobs.
         """
         alice = Alice(p_alice)
-        bobs = [Node(f"Bob_{i}", p_bob) for i in range(num_bobs)]
+        bobs = [Node(f"Bob_{i}", p_bob) for i in range(1,num_bobs+1)]
         
         num_disconnected = int(num_bobs * disconnect_percentage / 100)
-        disconnected_bobs = random.sample(range(num_bobs), num_disconnected)
+        disconnected_bobs = random.sample(range(1,num_bobs+1), num_disconnected)
         disconnect_steps = {bob_id: random.randint(1, message_length-1) for bob_id in disconnected_bobs} # Étapes de déconnexion
         
         results = {
@@ -274,7 +274,7 @@ def AliceNBob(request):
         print(f"Number of Bobs to be disconnected: {num_disconnected} ({disconnect_percentage}%)")
         print(f"Message length: {message_length} bits\n")
         
-        for bob_id in range(num_bobs):
+        for bob_id in range(1,num_bobs+1):
             results["real_bits"][bob_id] = []
             results["would_send_bits"][bob_id] = []
             if bob_id in disconnected_bobs:
@@ -292,6 +292,7 @@ def AliceNBob(request):
 
             
             for bob_id, bob in enumerate(bobs):
+                bob_id += 1
                 if bob_id in disconnected_bobs and step == disconnect_steps[bob_id] and not bob.is_disconnected:
                     bob.is_disconnected = True
                     print(f"** Bob_{bob_id} is now disconnected (step {step})! **")

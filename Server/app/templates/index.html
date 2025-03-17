@@ -22,7 +22,7 @@
                                     <tr>
                                         <th scope="row">Graph Type</th>
                                         <td>
-                                            <select name="graph_type" id="graph_type">
+                                            <select name="graph_type" id="graph_type" onchange="_changeGraphType()"> >
                                                 <option value="random">Random</option>
                                                 <option value="cycle">Cycle</option>
                                                 <option value="bipartite">Bipartite</option>
@@ -279,17 +279,7 @@
                                         </tr>
                                     </thead>
                                     <tbody class="h-100">
-                                        <tr>
-                                            <th scope=" row">Modéle</th>
-                                            <td>
-                                                <select name="model_mnist" id="model_mnist" onchange="changeBobAlice()">
-                                                    <option value="">----------</option>
-                                                    <option value="rd">Random</option>
-                                                    <option value="alice_n_bob">Serie</option>
-
-                                                </select>
-                                            </td>
-                                        </tr>
+                     
                                         <tr>
                                             <th scope="row">drop probability</th>
                                             <td>
@@ -369,7 +359,7 @@
                                     </tbody>
                                 </table>
                                 <button onclick="simulate_mis()" class="btn btn-success">Run</button>
-                                <button onclick="mis_graph_coloration()" class="btn btn-primary">Run</button>
+                                <button onclick="mis_graph_coloration()" class="btn btn-primary">Colorer graph</button>
 
                             </div>
                         </div>
@@ -433,7 +423,6 @@
         layout: "layout",
         mode: "alice_bob",
     }
-
 
     const handler = {
         set(obj, prop, newValue) {
@@ -531,7 +520,14 @@
     }
 
     function nodeClicked(e, node) {
-        // updateNode(node.data.key);
+        alert(config_proxy.layout);
+
+        if (layout === "custom") {
+            const color = node.data.color === "white" ? "black" : "white";
+            myDiagram.model.setDataProperty(node.data, "color", color);
+        }
+                
+            
     }
 
     function updateLink(fromNodeKey, toNodeKey, color) {
@@ -618,18 +614,7 @@
                 },
                 new go.Binding("fill", "color") // Lie la couleur à la propriété "color"
             ),
-            {
-                click: (e, node) => {
-                    // Changer la couleur de la cellule au clic
-                    // const colors = ["white", "lightblue", "lightblue", "pink", "yellow"];
-                    // const currentColor = node.data.color || "white";
-                    // const nextColor = colors[(colors.indexOf(currentColor) + 1) % colors.length] || colors[0];
-                    // myDiagram.model.setDataProperty(node.data, "color", nextColor);
-                    // alert key 
-                    alert(node.data.key);
-                    updateNode(node.data.key, 'red');
-                }
-            }
+  
         );
 
         // Création de la grille
@@ -702,6 +687,7 @@
         myDiagram.nodeTemplate =
             $(go.Node, "Auto",
                 { locationSpot: go.Spot.Center, click: nodeClicked },
+                
                 new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
                 $(go.Shape, "RoundedRectangle",
                     { fill: "lightblue" },
@@ -1001,18 +987,17 @@
     }
 
     function simulate_alice_mnist() {
-        let model = document.getElementById('model_mnist').value;
         let drop_probability = document.getElementById('drop_probability').value;
         let num_samples = document.getElementById('num_samples').value;
-        fetch_alice_mnist(model, drop_probability, num_samples);
+        fetch_alice_mnist(drop_probability, num_samples);
     }
 
-    async function fetch_alice_mnist(model = 'random', drop_probability = 0.6, num_samples = 10) {
+    async function fetch_alice_mnist( drop_probability = 0.6, num_samples = 10) {
         const canvas = document.createElement('canvas');
         canvas.width = 28; // Largeur du canvas
         canvas.height = 28; // Hauteur du canvas
         const ctx = canvas.getContext('2d');
-        const response = await fetch(`/AliceMnist/?model=${model}&drop_probability=${drop_probability}&num_samples=${num_samples}`);
+        const response = await fetch(`/AliceMnist/?drop_probability=${drop_probability}&num_samples=${num_samples}`);
         if (!response.ok) {
             console.error("Erreur:", response.statusText);
             return;

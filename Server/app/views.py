@@ -15,28 +15,26 @@ import base64
 from django.shortcuts import render
 from django.http import StreamingHttpResponse
 import time
-
 import json
-
-
 import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
-import matplotlib.pyplot as plt
 import random
 from django.conf import settings
-
-import random
 from sklearn.linear_model import LogisticRegression
-import numpy as np
-
-import random
-from sklearn.linear_model import LogisticRegression
-import numpy as np
-
-import random
 from sklearn.linear_model import SGDClassifier
-import numpy as np
+
+
+
+from torch.utils.data import DataLoader, Dataset
+from sklearn.neighbors import NearestNeighbors
+import os
+import pickle
+
+from .ml_model.misGmnist import CNNAutoencoder as misGmnist ,create_geometric_graph_structure, apply_node_failures, create_binary_image, compute_mis
+
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class PatternPredictor:
     def __init__(self, buffer_size=20):
@@ -160,11 +158,6 @@ class Node:
             "guess_mode": self.guess_mode
         }
     
-
-
-
-
-
 class CNNAutoencoder(nn.Module):
     def __init__(self):
         super(CNNAutoencoder, self).__init__()
@@ -187,11 +180,14 @@ class CNNAutoencoder(nn.Module):
         return decoded
 
 
-
-
-
 def index(request):
     return render(request, 'index.html')
+
+
+
+
+
+
 
 @csrf_exempt
 def AliceBob(request):
@@ -475,6 +471,7 @@ def Alice_mnist(request):
     num_samples = int(data.get('num_samples', 1))
 
 
+  
     # Charger le modèle sauvegardé
     model = CNNAutoencoder()
     
@@ -490,7 +487,6 @@ def Alice_mnist(request):
         transforms.Lambda(lambda x: (x > 0.5).float()),
     ])
 
-    # Charger le dataset MNIST (ou vos propres données)
     test_dataset = datasets.MNIST(
         root='./data',
         train=False,
@@ -509,11 +505,11 @@ def Alice_mnist(request):
         return dropped_flat
 
     # Utiliser la fonction pour afficher les prédictions
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
+
+    model = model.to(DEVICE)
 
     # Fonction pour afficher les prédictions
-    def show_random_predictions(model, test_loader, device, num_samples=1, drop_probability=0.6):
+    def show_random_predictions(model, test_loader, DEVICE, num_samples=1, drop_probability=0.6):
         model.eval()
         
         # Charger toutes les données de test sous forme de liste
@@ -523,7 +519,7 @@ def Alice_mnist(request):
         sample_images, _ = random.choice(all_data)
         
         # Limiter le nombre d'images affichées
-        sample_images = sample_images[:num_samples].to(device)
+        sample_images = sample_images[:num_samples].to(DEVICE)
         
         # Appliquer le dropout sur les images aplaties
         flat_sample = sample_images.view(num_samples, -1)
@@ -544,14 +540,11 @@ def Alice_mnist(request):
         # Afficher les résultats avec matplotlib
         # plt.figure(figsize=(10, 5))
         for i in range(num_samples):
-   
+
             yield json.dumps({"original":original_cpu[i][0].tolist(), "dropped":dropped_cpu[i][0].tolist(), "reconstructed":reconstructed_cpu[i][0].tolist()}) + "\n"
             time.sleep(1)
 
 
-
-
-
-    
-    return StreamingHttpResponse(show_random_predictions(model, test_loader, device, num_samples, drop_probability), content_type="application/json")
         
+    return StreamingHttpResponse(show_random_predictions(model, test_loader, DEVICE, num_samples, drop_probability), content_type="application/json")
+

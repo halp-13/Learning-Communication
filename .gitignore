@@ -2,3 +2,7 @@ env/
 __pycahce__/
 *.pyc
 data/
+*.pyc
+Server/app/__pycache__/views.cpython-311.pyc
+Server/app/__pycache__/urls.cpython-311.pyc
+logics/.nfs0000000003a529a600000065

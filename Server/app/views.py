@@ -26,46 +26,128 @@ import matplotlib.pyplot as plt
 import random
 from django.conf import settings
 
+import random
+from sklearn.linear_model import LogisticRegression
+import numpy as np
+
+import random
+from sklearn.linear_model import LogisticRegression
+import numpy as np
+
+import random
+from sklearn.linear_model import SGDClassifier
+import numpy as np
+
+class PatternPredictor:
+    def __init__(self, buffer_size=20):
+        self.buffer_size = buffer_size
+    
+    
+
+    
+    def predict_next_bit(self, history):
+        if len(history) < self.buffer_size:
+            return random.randint(0, 1)
+            
+        history_str = ''.join(map(str, history))
+        pattern_counts = {}
+        
+        for length in range(1, self.buffer_size // 2 + 1):
+            sub_pattern = history_str[-length:]
+            count = history_str[:-length].count(sub_pattern)
+            if count > 0:
+                pattern_counts[sub_pattern] = count
+        
+        if pattern_counts:
+            best_pattern = max(pattern_counts, key=pattern_counts.get)
+            next_index = history_str.rfind(best_pattern) + len(best_pattern)
+            if next_index < len(history):
+                return self.history[next_index]
+        
+        return random.randint(0, 1)
+
 class Node:
-    """
-    Cette classe représente un nœud dans la communication P2P.
-    Chaque nœud peut envoyer et recevoir des bits (0 ou 1).
-    Il peut également être déconnecté.
-    """
-    def __init__(self, name, p_one):
-        """
-        name: Nom du nœud (ex: 'Alice' ou 'Bob_1')
-        p_one: Probabilité qu'un message envoyé par ce nœud soit un bit 1
-        """
+    def __init__(self, name, p_one=0.5, send_mode="random", guess_mode="random", buffer_size=20):
         self.name = name
         self.p_one = p_one
         self.is_disconnected = False
-        self.received_bits = []
+        self.received_bits = []  # Liste plate pour stocker les bits
         self.count_ones = 0
         self.count_total = 0
-    
+        self.send_mode = send_mode
+        self.guess_mode = guess_mode
+        self._send_counter = 0
+        self.buffer_size = buffer_size
+        self.pattern_predictor = PatternPredictor(buffer_size)
+
     def send_message(self):
         if self.is_disconnected:
             return None
-        bit = 1 if random.random() < self.p_one else 0
+
+        if self.send_mode == "random":
+            return self._send_random()
+        elif self.send_mode == "alternate":
+            return self._send_alternate()
+        elif self.send_mode == "pattern":
+            return self._send_pattern()
+        else:
+            raise ValueError(f"Mode d'envoi inconnu : {self.send_mode}")
+
+    def _send_random(self):
+        return 1 if random.random() < self.p_one else 0
+
+    def _send_alternate(self):
+        bit = self._send_counter % 2
+        self._send_counter += 1
         return bit
-    
+
+    def _send_pattern(self):
+        pattern = [1, 0, 1, 1, 0]  # Motif personnalisé
+        bit = pattern[self._send_counter % len(pattern)]
+        self._send_counter += 1
+        return bit
+
     def receive_message(self, bit):
-        self.received_bits.append(bit)
+        self.received_bits.append(bit)  # Ajouter un bit à la liste plate
         self.count_total += 1
         if bit == 1:
             self.count_ones += 1
-    
-    def guess_message(self):
-        """
-        Devine un bit lorsque l'autre nœud est déconnecté.
-        """
+
+    # def guess_message(self):
+    #     if self.guess_mode == "random":
+    #         return self._guess_random()
+    #     elif self.guess_mode == "probability":
+    #         return self._guess_probability()
+    #     elif self.guess_mode == "perceptron":
+    #         return self._guess_perceptron()
+    #     else:
+    #         raise ValueError(f"Mode de prédiction inconnu : {self.guess_mode}")
+
+    def _guess_random(self):
+        return random.randint(0, 1)
+
+    def _guess_probability(self):
         if self.count_total == 0:
             return 0
-        
         prob_one = self.count_ones / self.count_total
-        bit_guess = 1 if random.random() < prob_one else 0
-        return bit_guess
+        return 1 if random.random() < prob_one else 0
+
+
+
+    def guess_message(self):
+        if self.guess_mode == "random":
+            return random.randint(0, 1)
+        elif self.guess_mode == "probability":
+            if self.count_total == 0:
+                return 0
+            prob_one = self.count_ones / self.count_total
+            return 1 if random.random() < prob_one else 0
+        elif self.guess_mode == "pattern":
+            return self.pattern_predictor.predict_next_bit(self.received_bits)
+        else:
+            raise ValueError(f"Mode de prédiction inconnu : {self.guess_mode}")
+
+
     def to_dict(self):
         return {
             "name": self.name,
@@ -73,8 +155,13 @@ class Node:
             "is_disconnected": self.is_disconnected,
             "received_bits": self.received_bits,
             "count_ones": self.count_ones,
-            "count_total": self.count_total
+            "count_total": self.count_total,
+            "send_mode": self.send_mode,
+            "guess_mode": self.guess_mode
         }
+    
+
+
 
 
 
@@ -118,45 +205,39 @@ def AliceBob(request):
     mode = data.get('mode', 'random')
     message = data.get('message', '')
 
-    print (p_alice, p_bob, message_length, disconnect_percentage, mode, message)
     # return JsonResponse({"message": "Hello, world!"}) 
 
     num_disconnected = int(message_length * disconnect_percentage / 100)
 
     def Alice_Bob(p_alice=0.5, p_bob=0.5, message_length=100):
-        alice = Node("Alice", p_alice)
-        bob = Node("Bob", p_bob)
+      
+        alice = Node("Alice", p_alice, send_mode="alternate", guess_mode="pattern")
+        bob = Node("Bob", p_bob , send_mode="pattern", guess_mode="probability")
 
         results = {
             "real_bits": [],
             "predicted_bits": []
         }
 
-        print("\n--- Simulation Started ---")
-        print(f"Alice sends '1' with probability {p_alice}.")
-        print(f"Bob sends '1' with probability {p_bob}.")
-        print(f"Message length: {message_length} bits\n")
 
-    
 
         for step in range(1, message_length + 1):
             disconnected = False if step < num_disconnected else True
             bit_from_alice = alice.send_message()
-            if bit_from_alice is not None:
-                bob.receive_message(bit_from_alice)
-
             bit_from_bob = bob.send_message()
-
-            if bit_from_bob is not None:
+            guess = "."
+            if not disconnected :
                 alice.receive_message(bit_from_bob)
+                bob.receive_message(bit_from_alice)
+            else:
+                guess = alice.guess_message()
 
                 
 
-            if step % 25 == 0 or step == message_length:
-                print(f"[Progress]: {step}/{message_length} steps completed.")
+     
 
             results["real_bits"].append(bit_from_bob)
-            guess = alice.guess_message()
+            
             results["predicted_bits"].append(guess)
             
 
@@ -164,16 +245,13 @@ def AliceBob(request):
             yield message
             time.sleep(1)
 
-        print("\n--- Simulation Finished ---")
-        print("\n--- Simulation Results ---")
+
 
         correct_predictions = sum(1 for real, predicted in zip(results["real_bits"], results["predicted_bits"]) if real == predicted)
         accuracy = (correct_predictions / message_length) * 100
 
-        print(f"Number of correct predictions: {correct_predictions}")
-        print(f"Prediction accuracy: {accuracy:.2f}%")
-
-        print("\n--- Simulation finished ---")
+        yield json.dumps({"correct_predictions":correct_predictions, "accuracy":accuracy}) + "\n"
+ 
 
 
     return StreamingHttpResponse(Alice_Bob(p_alice,p_bob,message_length), content_type="application/json")

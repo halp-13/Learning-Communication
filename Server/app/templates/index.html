@@ -254,7 +254,8 @@
                                     </tr> -->
                                     </tbody>
                                 </table>
-                                <button onclick="simulate_alice_n_bob()">Run</button>
+                                <button id="alice_n_bob_btn" class="btn btn-success"
+                                    onclick="simulate_alice_n_bob()">Run</button>
                             </div>
                         </div>
                         <div class=" d-flex p-1 flex-column" style="flex: 1;">
@@ -315,14 +316,14 @@
                                 <div class=" card d-flex bg-transparent " style="flex: 1; ">
                                     <div class="card-header text-center text-dark">Original</div>
                                     <div id="img-original"
-                                        style=" background-image: url('/static/original.png')  ; background-size: contain; background-position: center; background-repeat: no-repeat; height: 100%; width: 100%;">
+                                        style=" background-image: unset  ; background-size: contain; background-position: center; background-repeat: no-repeat; height: 100%; width: 100%;">
                                     </div>
 
                                 </div>
                                 <div class="card d-flex bg-transparent " style="flex: 1; ">
                                     <div class="card-header text-center text-dark">Restore</div>
                                     <div id="img-reconstructed"
-                                        style=" background-image: url('/static/reconstitued.png')  ; background-size: contain; background-position: center; background-repeat: no-repeat; height: 100%; width: 100%;">
+                                        style=" background-image:unset  ; background-size: contain; background-position: center; background-repeat: no-repeat; height: 100%; width: 100%;">
                                     </div>
                                 </div>
                             </div>
@@ -330,7 +331,7 @@
                                 <div class="card d-flex  bg-transparent text-dark " style="flex: 1;">
                                     <div class="card-header text-center">Noisy</div>
                                     <div id="img-dropped"
-                                        style=" background-image: url('/static/droped.png')  ; background-size: contain; background-position: center; background-repeat: no-repeat; height: 100%; width: 100%;">
+                                        style=" background-image: unset ; background-size: contain; background-position: center; background-repeat: no-repeat; height: 100%; width: 100%;">
                                     </div>
 
                                 </div>
@@ -345,8 +346,30 @@
                             </div>
                             <div class="card-body d-flex p-0 m-0 flex-column">
                                 <!-- table form  -->
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Option</th>
+                                            <th scope="col">Valeur</th>
 
+                                        </tr>
+                                    </thead>
+                                    <tbody class="h-100">
+                                        <tr>
+                                            <th scope=" row">Most neighbord</th>
+                                            <td>
+                                                <input type="checkbox" name="most_neighbord" id="start_node_with_most_neighbors" onclick="changeMisOption()"
+                                                    value="1">
+                                            </td>
+
+                                        </tr>
+
+                             
+                                  
+                                    </tbody>
+                                </table>
                                 <button onclick="simulate_mis()" class="btn btn-success">Run</button>
+                                <button onclick="mis_graph_coloration()" class="btn btn-primary">Run</button>
 
                             </div>
                         </div>
@@ -354,10 +377,25 @@
                             <div class="d-flex bg-light" style="flex: 1;">
                                 <div class=" card d-flex bg-transparent " style="flex: 1; ">
                                     <div class="card-header text-center text-dark">Result</div>
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <td>Tours</td>
+                                                <td id="tours_mis">0</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Nodes</td>
+                                                <td id="mis_size">0</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Coloration</td>
+                                                <td id="mis_coloration">0</td>
+                                            </tr>
 
-                                    <div class="card-body">
-                                        <button class="btn btn-primary">Télécharger</button>
-                                    </div>
+
+                                        </tbody>
+                                    </table>
+
 
 
                                 </div>
@@ -385,16 +423,31 @@
     // $(document).ready(function () {
     //     console.log("jQuery ready");
     // });
+
+
     const canevas_box = document.getElementById('canvasBox');
     var $ = go.GraphObject.make;
 
-    var simunlation_started = false;
-    var layout = "layout";
-    var mode = "alice_bob";
+    const config = {
+        simunlation_started: false,
+        layout: "layout",
+        mode: "alice_bob",
+    }
+
+
+    const handler = {
+        set(obj, prop, newValue) {
+            console.log(`La propriété "${prop}" a changé de ${obj[prop]} à ${newValue}`);
+            obj[prop] = newValue; // Mettre à jour la valeur
+            return true; // Indiquer que la mise à jour a réussi
+        }
+    };
+
+    const config_proxy = new Proxy(config, handler);
 
     var myDiagram = $(go.Diagram, "myDiagramDiv", {
         "undoManager.isEnabled": true, // Activer le gestionnaire d'annulation
-        // layout: $(go.ForceDirectedLayout),  // Ajout d'un layout pour éviter la superposition
+
         "panningTool.isEnabled": false, // Désactiver le déplacement du diagramme
         isReadOnly: false, // Permet de cliquer sur les cellules
         // allowZoom: false,
@@ -509,7 +562,7 @@
     }
 
     function alice_bob() {
-        layout = "force";
+        config_proxy.Layout = "force";
         changeLayout();
 
         myDiagram.nodeTemplate =
@@ -544,9 +597,8 @@
     function alice_mnist() {
 
         // remove diagram layout CircularLayout Sample
-        layout = "layout";
+        config_proxy.Layout = "layout";
         changeLayout();
-        // console.log({ layout: myDiagram.layout });
         const rows = 28, cols = 28; // Taille de la grille
         const nodeSize = 100; // Taille d'une cellule
 
@@ -597,7 +649,7 @@
     }
 
     function mis() {
-        layout = "force";
+        config_proxy.Layout = "force";
         changeLayout();
 
         const vertices = document.getElementById('nb_nodes').value;
@@ -646,7 +698,7 @@
 
         const vertices = document.getElementById('nb_nodes').value;
 
-        layout = "force";
+        config_proxy.Layout = "force";
         myDiagram.nodeTemplate =
             $(go.Node, "Auto",
                 { locationSpot: go.Spot.Center, click: nodeClicked },
@@ -685,7 +737,7 @@
             btn.classList.remove('btn-danger');
             btn.classList.add('btn-success');
             btn.innerHTML = 'Start';
-            simunlation_started = false;
+            config_proxy.simunlation_started = false;
             return;
         }
 
@@ -698,18 +750,18 @@
         let disconnect_percentage = parseInt(document.getElementById('disconnect_percentage').value);
 
 
-        var mode = document.getElementById("logique_bob_1").value;
-        simunlation_started = true;
-        await fetch_alice_bob(mode, p_alice, p_bob, message_length, disconnect_percentage);
+        var logique = document.getElementById("logique_bob_1").value;
+        config_proxy.simunlation_started = true;
+        await fetch_alice_bob(logique, p_alice, p_bob, message_length, disconnect_percentage);
         // simulateCommunication(p_alice, p_bob, steps);
     }
 
     async function simulate_alice_n_bob() {
-        const ok = alice_n_bob();
-        console.log({ ok });
-        if (ok) {
-            await fetch_alice_n_bob();
-        }
+        // const ok = alice_n_bob();
+        // console.log({ ok });
+        // if (ok) {
+        // }
+        await fetch_alice_n_bob();
 
 
     }
@@ -722,6 +774,8 @@
         let case_width_alice = (width_console_alice / 4) - 3;
         console_alice_bob_alice.style.wordSpacing = case_width_alice + 'px';
 
+        const len_steps = message_length.toString().length;
+
         if (!response.ok) {
             console.error("Erreur:", response.statusText);
             return;
@@ -729,8 +783,11 @@
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
+        console_alice_bob_alice.value = '';
+        updateNode('Bob', 'lightblue');
 
-        while (simunlation_started) {
+
+        while (config_proxy.simunlation_started) {
             const { done, value } = await reader.read();
             if (done) break;
 
@@ -743,14 +800,25 @@
                 try {
                     // Parser la ligne en tant qu'objet JSON
                     const data = JSON.parse(line);
-                    let alice_line = [data.step, data.alice, data.bob, data.guess];
-                    console_alice_bob_alice.value += alice_line.join(' ') + '\n';
-                    // scroll to bottom
-                    console_alice_bob_alice.scrollTop = console_alice_bob_alice.scrollHeight;
-                    // change Node color to red if data.disconneted is true
-                    if (data.disconnected) {
-                        updateNode('Bob', 'red');
+
+                    // check if step is in data
+                    if (data.step) {
+                        let zero_before = '0'.repeat(len_steps - data.step.toString().length);
+                        let alice_line = [`${zero_before}${data.step}`, data.alice, data.bob, data.guess];
+                        console_alice_bob_alice.value += alice_line.join(' ') + '\n';
+                        // scroll to bottom
+                        console_alice_bob_alice.scrollTop = console_alice_bob_alice.scrollHeight;
+                        // change Node color to red if data.disconneted is true
+                        if (data.disconnected) {
+                            updateNode('Bob', 'red');
+                        }
                     }
+
+                    if (data.accuracy) {
+
+                    }
+
+
 
                 } catch (error) {
                     console.error('Erreur de parsing JSON :', error, line);
@@ -760,12 +828,13 @@
             // Afficher dans une div HTML
             // document.getElementById("output").innerText += chunk;
         }
+        simulate_alice_bob();
     }
 
     async function fetch_alice_n_bob() {
 
         const mode = document.getElementById('alice_bob_n').value;
-        const nb_bob = document.getElementById('nb_bob_n').value;
+        const nb_bob = document.getElementById('nb_nodes').value;
         const p_alice = document.getElementById('ratio_alice_n').value;
         const p_bob = document.getElementById('ratio_bob_n').value;
         const message_length = document.getElementById('message_length_n').value;
@@ -851,7 +920,7 @@
 
     function _changeMode() {
         var e = document.getElementById("mode-select");
-        mode = e.options[e.selectedIndex].value;
+        config_proxy.mode = e.options[e.selectedIndex].value;
         changeMode();
     }
 
@@ -876,8 +945,7 @@
         }
 
         myDiagram.allowMove = true;
-
-        if (mode == 'alice_bob') {
+        if (config_proxy.mode == 'alice_bob') {
             alice_bob();
             title.innerHTML = 'Alice-Bob';
             // get box 
@@ -889,17 +957,17 @@
 
 
         }
-        else if (mode == 'alice_n_bob') {
-            document.getElementById('nb_nodes').value =10;
+        else if (config_proxy.mode == 'alice_n_bob') {
+            document.getElementById('nb_nodes').value = 10;
             alice_n_bob();
             title.innerHTML = 'Alice-N-Bob';
             let box = document.getElementById('box_alice_n_bob');
             box.classList.remove('d-none');
             box.classList.add('d-flex');
             graph_type.disabled = true;
-            
+
         }
-        else if (mode == 'alice_mnist') {
+        else if (config_proxy.mode == 'alice_mnist') {
             // alice_n_bob(784);
             alice_mnist();
             // desactiver les deplacements des Nodes 
@@ -911,7 +979,7 @@
 
             toggle_blur_ovelay(true);
         }
-        else if (mode == 'mis') {
+        else if (config_proxy.mode == 'mis') {
             // bob_alice();
             // redraw();
 
@@ -919,11 +987,11 @@
             let box = document.getElementById('box_mis');
             box.classList.remove('d-none');
             box.classList.add('d-flex');
-            document.getElementById('nb_nodes').value =10;
+            document.getElementById('nb_nodes').value = 10;
             mis();
         }
         var e = document.getElementById("mode-select");
-        e.value = mode;
+        e.value = config_proxy.mode;
 
     }
 
@@ -1091,12 +1159,12 @@
         const vertices = [];
         const edges = [];
 
-        type = (mode == 'alice_n_bob') ? 'Alice_n_bob' : type;
+        type = (config_proxy.mode == 'alice_n_bob') ? 'Alice_n_bob' : type;
 
         let Name = "Node"
         if (type === "Alice_n_bob") {
             Name = "Bob";
-        }else{
+        } else {
             document.getElementById('graph_type').value = type;
         }
 
@@ -1123,7 +1191,7 @@
                     });
                 }
             }
-        } 
+        }
         else if (type === "cycle") {
             // Graphe cyclique : chaque sommet est relié à son voisin
             for (let i = 0; i < numVertices; i++) {
@@ -1134,7 +1202,7 @@
                     color: options.edgeColor || "black"
                 });
             }
-        } 
+        }
         else if (type === "random") {
             // Graphe aléatoire : générer des arêtes aléatoirement
             const numEdges = options.numEdges || Math.floor(numVertices * 1.5); // Nombre d'arêtes par défaut
@@ -1149,7 +1217,7 @@
                     });
                 }
             }
-        } 
+        }
         else if (type === "tree") {
             // Arbre : chaque sommet est connecté à un parent (sauf la racine)
             for (let i = 1; i < numVertices; i++) {
@@ -1160,7 +1228,7 @@
                     color: options.edgeColor || "black"
                 });
             }
-        } 
+        }
         else if (type === "bipartite") {
             // Biparti : diviser les sommets en deux ensembles et connecter entre eux
             const set1 = Math.floor(numVertices / 2);
@@ -1173,7 +1241,7 @@
                     });
                 }
             }
-        } 
+        }
         else if (type === "grid") {
             // Grille : disposer les sommets en grille et connecter les voisins
             const rows = Math.floor(Math.sqrt(numVertices));
@@ -1198,7 +1266,7 @@
                     }
                 }
             }
-        } 
+        }
         else if (type === "star") {
             // Étoile : un sommet central connecté à tous les autres
             const center = 0; // Le premier sommet est le centre
@@ -1209,7 +1277,7 @@
                     color: options.edgeColor || "black"
                 });
             }
-        } 
+        }
         else if (type === "path") {
             // Linéaire : les sommets sont connectés en ligne
             for (let i = 0; i < numVertices - 1; i++) {
@@ -1219,11 +1287,11 @@
                     color: options.edgeColor || "black"
                 });
             }
-        } 
+        }
         else if (type === "custom") {
             // Graphe personnalisé : à implémenter
 
-        } 
+        }
         else if (type === "regular") {
             //Graphe régulier 
             const degree = options.degree || 2;
@@ -1237,7 +1305,7 @@
                     });
                 }
             }
-        } 
+        }
         else if (type === "planaire") {
             //Graphe planaire
             const degree = options.degree || 2;
@@ -1251,7 +1319,7 @@
                     });
                 }
             }
-        } 
+        }
         else if (type === "eulerien") {
             //Graphe eulerien
             const degree = options.degree || 2;
@@ -1266,7 +1334,7 @@
                 }
             }
 
-        } 
+        }
         else if (type === "hamiltonien") {
             //Graphe hamiltonien
             const degree = options.degree || 2;
@@ -1281,7 +1349,7 @@
                 }
             }
 
-        } 
+        }
         else if (type = "Alice_n_bob") {
             // create Alice 
             vertices.push({
@@ -1297,7 +1365,7 @@
                 });
             }
 
-        } 
+        }
         else {
             throw new Error("Type de graphe non supporté. Choisissez entre 'complete', 'cycle', 'random', 'tree', 'bipartite', 'grid', 'star', 'path', 'custom', 'regular', 'planaire', 'eulerien', 'hamiltonien'");
         }
@@ -1308,43 +1376,43 @@
         // Assigner le layout idéal en fonction du type de graphe
 
         if (type === "complete" || type === "cycle" || type === "star") {
-            layout = "circular";
+            config_proxy.Layout = "circular";
         } else if (type === "random") {
-            layout = "force";
+            config_proxy.Layout = "force";
         } else if (type === "tree") {
-            layout = "tree";
+            config_proxy.Layout = "tree";
         } else if (type === "bipartite") {
-            layout = "layered";
+            config_proxy.Layout = "layered";
         } else if (type === "grid") {
-            layout = "grid";
+            config_proxy.Layout = "grid";
         } else if (type === "path") {
-            layout = "layered";
+            config_proxy.Layout = "layered";
         }
         else if (type === "regular") {
-            layout = "force";
+            config_proxy.Layout = "force";
         }
         else if (type === "planaire") {
-            layout = "force";
+            config_proxy.Layout = "force";
         }
         else if (type === "eulerien") {
-            layout = "force";
+            config_proxy.Layout = "force";
         }
         else if (type === "hamiltonien") {
-            layout = "force";
+            config_proxy.Layout = "force";
         }
         else if (type === "Alice_n_bob") {
-            layout = "force";
+            config_proxy.Layout = "force";
         }
         else {
-            layout = "force";
+            config_proxy.Layout = "force";
         }
 
         // Assigner le layout au diagramme
-        if (layout) {
+        if (config_proxy.Layout) {
             changeLayout();
         }
 
-        
+
 
         return model;
     }
@@ -1358,6 +1426,7 @@
         for (const node of nodes) {
             neighbors.set(node.key, new Set());
         }
+
         for (const edge of edges) {
             neighbors.get(edge.from).add(edge.to);
             neighbors.get(edge.to).add(edge.from);
@@ -1375,7 +1444,27 @@
 
         // Simulation des tours
         let remainingNodes = new Set(nodes.map(node => node.key)); // Nœuds restants
+
+        start_node_with_most_neighbors = document.getElementById('start_node_with_most_neighbors').checked;
+
+        if (start_node_with_most_neighbors) {
+            let max_neighbors = 0;
+            let start_node = '';
+            for (const nodeKey of remainingNodes) {
+                if (neighbors.get(nodeKey).size > max_neighbors) {
+                    max_neighbors = neighbors.get(nodeKey).size;
+                    start_node = nodeKey;
+                }
+            }
+            mis.add(start_node);
+            remainingNodes.delete(start_node);
+            for (const neighbor of neighbors.get(start_node)) {
+                remainingNodes.delete(neighbor);
+            }
+        }
+        let cpt = 0;
         while (remainingNodes.size > 0) {
+
             // Chaque nœud envoie aléatoirement 0 ou 1
             const messages = new Map();
             for (const nodeKey of remainingNodes) {
@@ -1405,56 +1494,114 @@
                     remainingNodes.delete(neighbor); // Retirer les voisins
                 }
             }
+            cpt++;
+
         }
+        document.getElementById('tours_mis').innerText = cpt;
+        document.getElementById('mis_size').innerText = mis.size;
 
         return Array.from(mis); // Retourner le MIS sous forme de tableau
     }
     function simulate_mis() {
+
+        const all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
+        updateNodes(all_nodes, 'lightblue');
+
         const mis = findMIS(myDiagram.model);
-        console.log("Maximal Independent Set (MIS):", mis);
+        // console.log("Maximal Independent Set (MIS):", mis);
 
         // Mettre en évidence les nœuds du MIS dans le diagramme
-        for (const node of myDiagram.model.nodeDataArray) {
-            if (mis.includes(node.key)) {
-                node.color = "green"; // Colorer les nœuds du MIS en vert
+        updateNodes(mis, 'green');
+        myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
+
+    }
+
+    function mis_graph_coloration() {
+        // coloration de graphe avec l'algorithme mis 
+        let nb_colors = 0;
+        let mis = findMIS(myDiagram.model);
+        let nodes = myDiagram.model.nodeDataArray;
+        let edges = myDiagram.model.linkDataArray;
+        let colors = new Map();
+        let neighbors = new Map();
+        for (const node of nodes) {
+            neighbors.set(node.key, new Set());
+        }
+
+        for (const edge of edges) {
+            neighbors.get(edge.from).add(edge.to);
+            neighbors.get(edge.to).add(edge.from);
+        }
+
+        for (const node of nodes) {
+            colors.set(node.key, 0);
+        }
+
+        for (const node of mis) {
+            colors.set(node, 1);
+        }
+
+        for (const node of nodes) {
+            if (colors.get(node.key) === 0) {
+                let available_colors = new Set();
+                for (const neighbor of neighbors.get(node.key)) {
+                    if (colors.get(neighbor) > 0) {
+                        available_colors.add(colors.get(neighbor));
+                    }
+                }
+                let color = 1;
+                while (available_colors.has(color)) {
+                    color++;
+                }
+                colors.set(node.key, color);
+                nb_colors = Math.max(nb_colors, color);
             }
         }
-        myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
+
+        for (const node of nodes) {
+            updateNode(node.key, colors.get(node.key) === 0 ? 'lightblue' : `hsl(${360 * colors.get(node.key) / nb_colors}, 100%, 50%)`);
+        }
+
+        document.getElementById('mis_coloration').innerText = nb_colors;
+
+
+
+
 
     }
 
     function _changeLayout() {
         const e = document.getElementById("layout");
-        layout = e.options[e.selectedIndex].value;
+        config_proxy.Layout = e.options[e.selectedIndex].value;
         changeLayout();
 
     }
 
     function changeLayout() {
 
-        if (layout == 'force') {
+        if (config_proxy.Layout == 'force') {
             myDiagram.layout = $(go.ForceDirectedLayout); // pour les graphes aléatoires
         }
-        else if (layout == 'circular') {
+        else if (config_proxy.Layout == 'circular') {
             myDiagram.layout = $(go.CircularLayout); // pour les graphes complets, cycliques et étoiles
         }
-        else if (layout == 'layered') {
+        else if (config_proxy.Layout == 'layered') {
             myDiagram.layout = $(go.LayeredDigraphLayout); // pour les graphes bipartis et linéaires
         }
-        else if (layout == 'grid') {
+        else if (config_proxy.Layout == 'grid') {
             myDiagram.layout = $(go.GridLayout); // pour les grilles
         }
-        else if (layout == 'tree') {
+        else if (config_proxy.Layout == 'tree') {
             myDiagram.layout = $(go.TreeLayout); // pour les arbres
         }
-        else if (layout == 'layout') {
+        else if (config_proxy.Layout == 'layout') {
             myDiagram.layout = $(go.Layout); // pour les graphes aléatoires
         }
         else {
             myDiagram.layout = $(go.ForceDirectedLayout); // pour les graphes aléatoires
         }
         const e = document.getElementById("layout");
-        e.value = layout;
+        e.value = config_proxy.Layout;
         myDiagram.updateAllTargetBindings();
 
     }

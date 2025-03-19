@@ -36,127 +36,70 @@ from .ml_model.misGmnist import CNNAutoencoder as misGmnist ,create_geometric_gr
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-class PatternPredictor:
-    def __init__(self, buffer_size=20):
-        self.buffer_size = buffer_size
-    
-    
 
-    
-    def predict_next_bit(self, history):
-        if len(history) < self.buffer_size:
-            return random.randint(0, 1)
-            
-        history_str = ''.join(map(str, history))
-        pattern_counts = {}
-        
-        for length in range(1, self.buffer_size // 2 + 1):
-            sub_pattern = history_str[-length:]
-            count = history_str[:-length].count(sub_pattern)
-            if count > 0:
-                pattern_counts[sub_pattern] = count
-        
-        if pattern_counts:
-            best_pattern = max(pattern_counts, key=pattern_counts.get)
-            next_index = history_str.rfind(best_pattern) + len(best_pattern)
-            if next_index < len(history):
-                return self.history[next_index]
-        
-        return random.randint(0, 1)
 
 class Node:
-    def __init__(self, name, p_one=0.5, send_mode="random", guess_mode="random", buffer_size=20):
+    """
+    Cette classe représente un nœud dans la communication P2P.
+    Chaque nœud peut envoyer et recevoir des bits (0 ou 1).
+    Il peut également être déconnecté.
+    """
+    def __init__(self, name, p_one, buffer_size=20):
+        """
+        name: Nom du nœud (ex: 'Alice' ou 'Bob')
+        p_one: Probabilité qu'un message envoyé par ce nœud soit un bit 1
+        buffer_size: Taille du buffer pour stocker les bits reçus
+        """
         self.name = name
         self.p_one = p_one
-        self.is_disconnected = False
-        self.received_bits = []  # Liste plate pour stocker les bits
-        self.count_ones = 0
-        self.count_total = 0
-        self.send_mode = send_mode
-        self.guess_mode = guess_mode
-        self._send_counter = 0
-        self.buffer_size = buffer_size
-        self.pattern_predictor = PatternPredictor(buffer_size)
-
+        self.buffer_size = buffer_size # Taille du buffer
+        self.is_disconnected = False  # Statut de déconnexion
+        self.received_bits = []       # Bits reçus de l'autre nœud
+        self.count_ones = 0          # Nombre de bits 1 reçus
+        self.count_total = 0         # Nombre total de bits reçus
+    
     def send_message(self):
+        """
+        Envoie un bit (0 ou 1) si le nœud n'est pas déconnecté.
+        Retourne None si le nœud est déconnecté.
+        """
         if self.is_disconnected:
             return None
-
-        if self.send_mode == "random":
-            return self._send_random()
-        elif self.send_mode == "alternate":
-            return self._send_alternate()
-        elif self.send_mode == "pattern":
-            return self._send_pattern()
-        else:
-            raise ValueError(f"Mode d'envoi inconnu : {self.send_mode}")
-
-    def _send_random(self):
-        return 1 if random.random() < self.p_one else 0
-
-    def _send_alternate(self):
-        bit = self._send_counter % 2
-        self._send_counter += 1
+        # Choisit un bit = 1 avec probabilité p_one
+        bit = 1 if random.random() < self.p_one else 0
         return bit
-
-    def _send_pattern(self):
-        pattern = [1, 0, 1, 1, 0]  # Motif personnalisé
-        bit = pattern[self._send_counter % len(pattern)]
-        self._send_counter += 1
-        return bit
-
+    
     def receive_message(self, bit):
-        self.received_bits.append(bit)  # Ajouter un bit à la liste plate
+        """
+        Reçoit un bit et met à jour les statistiques.
+        Si le buffer est plein, retire le bit le plus ancien avant d'ajouter le nouveau bit.
+        """
+        # Si le buffer est plein, on retire le bit le plus ancien
+        if len(self.received_bits) >= self.buffer_size:
+            oldest_bit = self.received_bits.pop(0) # Retire le bit le plus ancien
+            if oldest_bit == 1:
+                self.count_ones -= 1
+            self.count_total -= 1
+        # Met à jour les statistiques
+        self.received_bits.append(bit)
         self.count_total += 1
         if bit == 1:
             self.count_ones += 1
-
-    # def guess_message(self):
-    #     if self.guess_mode == "random":
-    #         return self._guess_random()
-    #     elif self.guess_mode == "probability":
-    #         return self._guess_probability()
-    #     elif self.guess_mode == "perceptron":
-    #         return self._guess_perceptron()
-    #     else:
-    #         raise ValueError(f"Mode de prédiction inconnu : {self.guess_mode}")
-
-    def _guess_random(self):
-        return random.randint(0, 1)
-
-    def _guess_probability(self):
-        if self.count_total == 0:
-            return 0
-        prob_one = self.count_ones / self.count_total
-        return 1 if random.random() < prob_one else 0
-
-
-
+    
     def guess_message(self):
-        if self.guess_mode == "random":
-            return random.randint(0, 1)
-        elif self.guess_mode == "probability":
-            if self.count_total == 0:
-                return 0
-            prob_one = self.count_ones / self.count_total
-            return 1 if random.random() < prob_one else 0
-        elif self.guess_mode == "pattern":
-            return self.pattern_predictor.predict_next_bit(self.received_bits)
-        else:
-            raise ValueError(f"Mode de prédiction inconnu : {self.guess_mode}")
-
-
-    def to_dict(self):
-        return {
-            "name": self.name,
-            "p_one": self.p_one,
-            "is_disconnected": self.is_disconnected,
-            "received_bits": self.received_bits,
-            "count_ones": self.count_ones,
-            "count_total": self.count_total,
-            "send_mode": self.send_mode,
-            "guess_mode": self.guess_mode
-        }
+        """
+        Devine un bit lorsque l'autre nœud est déconnecté et ne renvoie rien.
+        La probabilité d'être 1 = (count_ones / count_total).
+        Retourne 0 par défaut si aucun bit n'a été reçu (count_total=0).
+        """
+        if self.count_total == 0:
+            return 0  # Pas de donnée statistique, on renvoie 0 par défaut.
+        
+        # Calcul de la probabilité d'obtenir un bit 1 sur le buffer size 
+        # si le buffer est plein, sinon sur le nombre total de bits reçus.
+        prob_one = self.count_ones / self.buffer_size if self.count_total >= self.buffer_size else self.count_ones / self.count_total
+        bit_guess = 1 if random.random() < prob_one else 0
+        return bit_guess
     
 class CNNAutoencoder(nn.Module):
     def __init__(self):
@@ -198,8 +141,6 @@ def AliceBob(request):
     p_bob = float(data.get('p_bob', 0.5))
     message_length = int(data.get('message_length', 100))
     disconnect_percentage = int(data.get('disconnect_percentage', 20))
-    mode = data.get('mode', 'random')
-    message = data.get('message', '')
 
     # return JsonResponse({"message": "Hello, world!"}) 
 
@@ -207,8 +148,8 @@ def AliceBob(request):
 
     def Alice_Bob(p_alice=0.5, p_bob=0.5, message_length=100):
       
-        alice = Node("Alice", p_alice, send_mode="alternate", guess_mode="pattern")
-        bob = Node("Bob", p_bob , send_mode="pattern", guess_mode="probability")
+        alice = Node("Alice", p_alice)
+        bob = Node("Bob", p_bob )
 
         results = {
             "real_bits": [],
@@ -228,16 +169,13 @@ def AliceBob(request):
             else:
                 guess = alice.guess_message()
 
-                
-
-     
 
             results["real_bits"].append(bit_from_bob)
             
             results["predicted_bits"].append(guess)
             
-
-            message = json.dumps({"step": step,"alice":bit_from_alice,"bob":bit_from_bob ,"guess":guess, "disconnected":disconnected }) + "\n"
+            distance = np.linalg.norm(bit_from_alice - bit_from_bob)
+            message = json.dumps({"step": step,"alice":bit_from_alice,"bob":bit_from_bob ,"guess":guess, "disconnected":disconnected ,"distance":distance }) + "\n"
             yield message
             time.sleep(1)
 
@@ -246,7 +184,9 @@ def AliceBob(request):
         correct_predictions = sum(1 for real, predicted in zip(results["real_bits"], results["predicted_bits"]) if real == predicted)
         accuracy = (correct_predictions / message_length) * 100
 
-        yield json.dumps({"correct_predictions":correct_predictions, "accuracy":accuracy}) + "\n"
+        distance = np.linalg.norm(np.array(results["real_bits"]) - np.array(results["predicted_bits"]))
+
+        yield json.dumps({"correct_predictions":correct_predictions, "accuracy":accuracy ,"distance":distance}) + "\n"
  
 
 
@@ -463,88 +403,84 @@ def AliceNBob(request):
 
 
 
+# Charger le modèle sauvegardé
+model = CNNAutoencoder()
+
+pth = settings.BASE_DIR / "static/data_pth/mnist_autoencoder.pth"
+model.load_state_dict(torch.load(pth))
+
+# model.load_state_dict(torch.load("mnist_autoencoder.pth"))
+model.eval()  # Mettre le modèle en mode évaluation
+
+# Définir la transformation pour les nouvelles données
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Lambda(lambda x: (x > 0.5).float()),
+])
+
+test_dataset = datasets.MNIST(
+    root='./data',
+    train=False,
+    download=True,
+    transform=transform
+)
+
+# Créer un DataLoader pour itérer sur les données
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=False)
+
+# Fonction pour appliquer le dropout
+def random_drop_784(batch_images_flat, drop_probability=0.6):
+    mask = (torch.rand_like(batch_images_flat) > drop_probability)
+    dropped_flat = batch_images_flat.clone()
+    dropped_flat[mask == 0] = -1
+    return dropped_flat
+
+# Utiliser la fonction pour afficher les prédictions
+
+model = model.to(DEVICE)
+
+# Fonction pour afficher les prédictions
+def show_random_predictions(model, test_loader, DEVICE, num_samples=1, drop_probability=0.6):
+    model.eval()
+    
+    # Charger toutes les données de test sous forme de liste
+    all_data = list(test_loader)
+    
+    # Sélectionner un échantillon aléatoire parmi les données de test
+    sample_images, _ = random.choice(all_data)
+    
+    # Limiter le nombre d'images affichées
+    sample_images = sample_images[:num_samples].to(DEVICE)
+    
+    # Appliquer le dropout sur les images aplaties
+    flat_sample = sample_images.view(num_samples, -1)
+    dropped_flat_sample = random_drop_784(flat_sample, drop_probability=drop_probability)
+
+    dropped_input_sample = dropped_flat_sample.view(num_samples, 1, 28, 28)
+    
+    # Obtenir les prédictions du modèle
+    with torch.no_grad():
+        logits = model(dropped_input_sample)
+        reconstructed = torch.sigmoid(logits)
+    
+    # Convertir les tenseurs en CPU et en numpy pour l'affichage
+    original_cpu = sample_images.cpu().numpy()
+    dropped_cpu = dropped_input_sample.cpu().numpy()
+    reconstructed_cpu = reconstructed.cpu().numpy()
+    
+    # Afficher les résultats avec matplotlib
+    # plt.figure(figsize=(10, 5))
+    for i in range(num_samples):
+
+        yield json.dumps({"original":original_cpu[i][0].tolist(), "dropped":dropped_cpu[i][0].tolist(), "reconstructed":reconstructed_cpu[i][0].tolist()}) + "\n"
+        time.sleep(1)
+
 @csrf_exempt
 def Alice_mnist(request):
 
     data = request.GET
     drop_probability = float(data.get('drop_probability', 0.6))
     num_samples = int(data.get('num_samples', 1))
-
-
-  
-    # Charger le modèle sauvegardé
-    model = CNNAutoencoder()
-    
-    pth = settings.BASE_DIR / "static/data_pth/mnist_autoencoder.pth"
-    model.load_state_dict(torch.load(pth))
-
-    # model.load_state_dict(torch.load("mnist_autoencoder.pth"))
-    model.eval()  # Mettre le modèle en mode évaluation
-
-    # Définir la transformation pour les nouvelles données
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Lambda(lambda x: (x > 0.5).float()),
-    ])
-
-    test_dataset = datasets.MNIST(
-        root='./data',
-        train=False,
-        download=True,
-        transform=transform
-    )
-
-    # Créer un DataLoader pour itérer sur les données
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=False)
-
-    # Fonction pour appliquer le dropout
-    def random_drop_784(batch_images_flat, drop_probability=0.6):
-        mask = (torch.rand_like(batch_images_flat) > drop_probability)
-        dropped_flat = batch_images_flat.clone()
-        dropped_flat[mask == 0] = -1
-        return dropped_flat
-
-    # Utiliser la fonction pour afficher les prédictions
-
-    model = model.to(DEVICE)
-
-    # Fonction pour afficher les prédictions
-    def show_random_predictions(model, test_loader, DEVICE, num_samples=1, drop_probability=0.6):
-        model.eval()
-        
-        # Charger toutes les données de test sous forme de liste
-        all_data = list(test_loader)
-        
-        # Sélectionner un échantillon aléatoire parmi les données de test
-        sample_images, _ = random.choice(all_data)
-        
-        # Limiter le nombre d'images affichées
-        sample_images = sample_images[:num_samples].to(DEVICE)
-        
-        # Appliquer le dropout sur les images aplaties
-        flat_sample = sample_images.view(num_samples, -1)
-        dropped_flat_sample = random_drop_784(flat_sample, drop_probability=drop_probability)
-
-        dropped_input_sample = dropped_flat_sample.view(num_samples, 1, 28, 28)
-        
-        # Obtenir les prédictions du modèle
-        with torch.no_grad():
-            logits = model(dropped_input_sample)
-            reconstructed = torch.sigmoid(logits)
-        
-        # Convertir les tenseurs en CPU et en numpy pour l'affichage
-        original_cpu = sample_images.cpu().numpy()
-        dropped_cpu = dropped_input_sample.cpu().numpy()
-        reconstructed_cpu = reconstructed.cpu().numpy()
-        
-        # Afficher les résultats avec matplotlib
-        # plt.figure(figsize=(10, 5))
-        for i in range(num_samples):
-
-            yield json.dumps({"original":original_cpu[i][0].tolist(), "dropped":dropped_cpu[i][0].tolist(), "reconstructed":reconstructed_cpu[i][0].tolist()}) + "\n"
-            time.sleep(1)
-
-
         
     return StreamingHttpResponse(show_random_predictions(model, test_loader, DEVICE, num_samples, drop_probability), content_type="application/json")
 

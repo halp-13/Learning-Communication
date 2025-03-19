@@ -14,7 +14,7 @@
 
                     <div id="myDiagramDiv"></div>
 
-                    <div id="botton_option" class="card text-dark bg-light d-flex flex-row overlay "
+                    <div id="botton_option" class="card text-dark bg-light d-flex flex-row overlay p-1"
                         style="height: 20%;width: 100%;">
                         <div class="d-flex  flex-column justify-content-between" style="flex: 1;">
                             <table class="h-100">
@@ -63,17 +63,6 @@
                             </table>
                             <button class="btn btn-primary" onclick="_generateGraph()">Generate Graph</button>
                         </div>
-                        <div class=" card d-flex " style="flex:1;">
-                            <div class="card-header text-center text-dark">Outils</div>
-                            <div class="d-flex align-content-end justify-content-between flex-wrap">
-                                <button class="btn btn-primary" onclick="addNode()">Add Node</button>
-                                <button class="btn btn-primary" onclick="updateNode()">Update Node</button>
-
-                                <button class="btn btn-primary" onclick="_deleteNode()">Delete Node</button>
-                                <button class="btn btn-primary" onclick="_deleteLink()">Delete Link</button>
-
-                            </div>
-                        </div>
 
                         <div id="blur_box" class="d-none"></div>
                     </div>
@@ -108,17 +97,7 @@
                                 <table class="table">
 
                                     <tbody class="h-100">
-                                        <tr>
-                                            <th scope=" row">Logique Bob</th>
-                                            <td>
-                                                <select name="logique_bob_1" id="logique_bob_1"
-                                                    onchange="changeBobAlice()">
-                                                    <option value="rd">Random</option>
-                                                    <option value="alice_n_bob">Serie</option>
-                                                </select>
-                                            </td>
-
-                                        </tr>
+                            
 
                                         <tr>
                                             <th scope="row">Ratio 1 Bob</th>
@@ -197,19 +176,6 @@
                                         </tr>
                                     </thead>
                                     <tbody class="h-100">
-                                        <tr>
-                                            <th scope=" row">Logique Bob</th>
-                                            <td>
-                                                <select name="bob_alice_n" id="alice_bob_n" onchange="changeBobAlice()">
-                                                    <option value="">----------</option>
-                                                    <option value="rd">Random</option>
-                                                    <option value="alice_n_bob">Serie</option>
-
-                                                </select>
-                                            </td>
-
-                                        </tr>
-
                                         <tr>
                                             <th scope="row">Ratio 1 Bob</th>
                                             <td>
@@ -736,9 +702,8 @@
         let disconnect_percentage = parseInt(document.getElementById('disconnect_percentage').value);
 
 
-        var logique = document.getElementById("logique_bob_1").value;
         config_proxy.simunlation_started = true;
-        await fetch_alice_bob(logique, p_alice, p_bob, message_length, disconnect_percentage);
+        await fetch_alice_bob( p_alice, p_bob, message_length, disconnect_percentage);
         // simulateCommunication(p_alice, p_bob, steps);
     }
 
@@ -752,9 +717,9 @@
 
     }
 
-    async function fetch_alice_bob(mode = 'randomn', p_alice = 0.2, p_bob = 0.5, message_length = 10, disconnect_percentage = 2, message = '') {
+    async function fetch_alice_bob(p_alice = 0.2, p_bob = 0.5, message_length = 10, disconnect_percentage = 2, message = '') {
         // const response = await fetch("/AliceBob/");
-        const response = await fetch(`/AliceBob/?mode=${mode}&p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}&message=${message}`);
+        const response = await fetch(`/AliceBob/?p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}&message=${message}`);
         let console_alice_bob_alice = document.getElementById('console_alice_bob_alice');
         let width_console_alice = console_alice_bob_alice.clientWidth;
         let case_width_alice = (width_console_alice / 4) - 3;
@@ -819,13 +784,12 @@
 
     async function fetch_alice_n_bob() {
 
-        const mode = document.getElementById('alice_bob_n').value;
         const nb_bob = document.getElementById('nb_nodes').value;
         const p_alice = document.getElementById('ratio_alice_n').value;
         const p_bob = document.getElementById('ratio_bob_n').value;
         const message_length = document.getElementById('message_length_n').value;
         const disconnect_percentage = document.getElementById('disconnect_percentage_n').value;
-        const response = await fetch(`/AliceNBob/?mode=${mode}&nb_bob=${nb_bob}&p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}`);
+        const response = await fetch(`/AliceNBob/?nb_bob=${nb_bob}&p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}`);
 
 
         // const response = await fetch("/AliceNBob/");
@@ -1590,8 +1554,6 @@
         myDiagram.updateAllTargetBindings();
 
     }
-
-
 
     (() => {
         //console.log("jQuery ready");

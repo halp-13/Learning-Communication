@@ -1,3 +1,6 @@
+# Remarque : 
+# Cette version du code, basée sur les données MNIST, n’a pas été utilisée dans la partie d’affichage graphique du projet. 
+# Pour la visualisation graphique, nous avons utilisé une autre version de l’algorithme MIS, spécifiquement adaptée à cette partie.
 import numpy as np
 import torch
 import torch.nn as nn
@@ -10,14 +13,16 @@ import random
 import os
 import pickle
 
+# Définition des hyperparamètres
 DISCONNECT_PERCENTAGE = 0.6
 LEARNING_RATE =1e-3
 NUM_EPOCHS = 15
 BATCH_SIZE = 64
 K_NEIGHBORS = 8
 
+# Choix du device(GPU ou CPU)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+# Chargement et transformation des données MNIST
 transform = transforms.Compose([transforms.ToTensor()])
 train_dataset = datasets.MNIST(root='./data', train=True, transform=transform, download=True)
 test_dataset = datasets.MNIST(root='./data', train=False, transform=transform, download=True)
@@ -26,6 +31,9 @@ train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 def create_geometric_graph_structure():
+    ''' Crée une structure de graphe géométrique pour les images MNIST 
+    avec des connexions KNN entre les pixels adjacents. 
+    '''
     h, w = 28, 28
     n_nodes = h * w
     
@@ -49,16 +57,22 @@ def create_geometric_graph_structure():
     }
 
 def apply_node_failures(graph_structure):
+    ''' Applique des échecs de noeuds aléatoires au graphe.
+    Cela simule des pixels déconnectés dans une image.'''
     n_nodes = graph_structure['n_nodes']
     failed_nodes = set(random.sample(range(n_nodes), int(n_nodes * DISCONNECT_PERCENTAGE)))
     return failed_nodes
 
 def create_binary_image(image):
+    ''' Convertit une image en un tableau binaire de pixels. '''
     flat_image = image.view(-1).numpy()
     binary_image = (flat_image > 0.5).astype(int)
     return binary_image
 
 def calc_win(u, active_set, phase, bit_idx, random_bits):
+    ''' Calcule le gagnant d'une étape de l'algorithme MIS.
+    L'algorithme MIS est utilisé pour déterminer les pixels actifs
+    dans une image binaire avec des pixels déconnectés.'''
     for v in active_set:
         while len(random_bits[u]) <= phase or len(random_bits[v]) <= phase:
             if len(random_bits[u]) <= phase:
@@ -80,6 +94,8 @@ def calc_win(u, active_set, phase, bit_idx, random_bits):
     return None
 
 def compute_mis(binary_image, graph_structure, failed_nodes):
+    ''' Calcule l'ensemble maximal indépendant (MIS) pour une image binaire
+    avec des pixels déconnectés. '''
     n_nodes = graph_structure['n_nodes']
     adj_list = graph_structure['adj_list']
     
@@ -160,6 +176,8 @@ def compute_mis(binary_image, graph_structure, failed_nodes):
     return mis_mask
 
 class MNISTGraphDataset(Dataset):
+    ''' Dataset pour les images MNIST avec des graphes géométriques et des pixels déconnectés. 
+    Les images sont prétraitées pour l'entrée dans un auto-encodeur CNN. '''
     def __init__(self, dataset, graph_structure, is_train=True):
         self.dataset = dataset
         self.graph_structure = graph_structure
@@ -177,6 +195,7 @@ class MNISTGraphDataset(Dataset):
                 pickle.dump(self.processed_data, f)
     
     def _preprocess_data(self):
+        ''' Prétraite les données pour l'entrée dans un auto-encodeur CNN. '''
         for i in range(len(self.dataset)):
             image, label = self.dataset[i]
             
@@ -205,6 +224,8 @@ class MNISTGraphDataset(Dataset):
         return self.processed_data[idx]
 
 class CNNAutoencoder(nn.Module):
+    ''' Auto-encodeur CNN pour les images MNIST avec des graphes géométriques et des pixels déconnectés. 
+    L'auto-encodeur est conçu pour reconstruire des images binaires avec des pixels déconnectés. '''
     def __init__(self):
         super(CNNAutoencoder, self).__init__()
         
@@ -236,6 +257,7 @@ class CNNAutoencoder(nn.Module):
         return x
 
 def train(model, train_loader, criterion, optimizer):
+    ''' Entraîne le modèle sur une époque de données d'entraînement. '''
     model.train()
     total_loss = 0
     
@@ -256,6 +278,7 @@ def train(model, train_loader, criterion, optimizer):
     return total_loss / len(train_loader)
 
 def test(model, test_loader, criterion):
+    ''' Teste le modèle sur les données de test. '''
     model.eval()
     total_loss = 0
     examples = []
@@ -283,6 +306,8 @@ def test(model, test_loader, criterion):
     return total_loss / len(test_loader), examples
 
 def visualize_results(examples, epoch):
+    ''' Visualise les résultats de la reconstruction pour des exemples d'entrée, 
+    leur version originale, la reconstruction, et le masque de défaillance. '''
     masked_imgs, original_imgs, reconstructed_imgs, failure_masks = examples
     
     fig, axes = plt.subplots(4, 5, figsize=(15, 10))

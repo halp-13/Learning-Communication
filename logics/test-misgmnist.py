@@ -1,3 +1,4 @@
+# Description: A script to test the MIS-GMNIST model. pour tester fichier misGmnist.py
 import os
 import sys
 import torch

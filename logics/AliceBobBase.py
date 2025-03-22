@@ -13,7 +13,7 @@ class Node:
         buffer_size: Taille du buffer pour stocker les bits reçus
         """
         self.name = name
-        self.p_one = p_one
+        self.p_one = p_one 
         self.buffer_size = buffer_size # Taille du buffer
         self.is_disconnected = False  # Statut de déconnexion
         self.received_bits = []       # Bits reçus de l'autre nœud
@@ -59,8 +59,8 @@ class Node:
         
         # Calcul de la probabilité d'obtenir un bit 1 sur le buffer size 
         # si le buffer est plein, sinon sur le nombre total de bits reçus.
-        prob_one = self.count_ones / self.buffer_size if self.count_total >= self.buffer_size else self.count_ones / self.count_total
-        bit_guess = 1 if random.random() < prob_one else 0
+        prob_guess_one = self.count_ones / self.buffer_size if self.count_total >= self.buffer_size else self.count_ones / self.count_total
+        bit_guess = 1 if random.random() < prob_guess_one else 0
         return bit_guess
 
 
@@ -139,8 +139,8 @@ def simulate_communication(p_alice=0.5, p_bob=0.5, steps=20 , buffer_size=20):
 
 if __name__ == "__main__":
     simulate_communication(
-        p_alice=0.8,   # Probabilité  Alice
-        p_bob=0.5,     # Probabilité  Bob
+        p_alice=0.8,   # Probabilité d'envoyer 1 pour Alice
+        p_bob=0.5,     # Probabilité d'envoyer 1 pour Bob
         steps=100,       # Nombre total des messages échangés(chaque message est un bit)
         buffer_size=20  # Taille du buffer
     )

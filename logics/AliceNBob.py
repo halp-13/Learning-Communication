@@ -52,8 +52,8 @@ class Node:
         
         # Calcul de la probabilité d'obtenir un bit 1 sur le buffer size 
         # si le buffer est plein, sinon sur le nombre total de bits reçus.
-        prob_one = self.count_ones / self.buffer_size if self.count_total >= self.buffer_size else self.count_ones / self.count_total
-        bit_guess = 1 if random.random() < prob_one else 0
+        prob_guess_one = self.count_ones / self.buffer_size if self.count_total >= self.buffer_size else self.count_ones / self.count_total
+        bit_guess = 1 if random.random() < prob_guess_one else 0
         return bit_guess
 
     def to_dict(self):
@@ -255,10 +255,10 @@ def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, discon
 
 if __name__ == "__main__":
     simulate_enhanced_communication(
-        p_alice=0.7,
-        p_bob=0.3,
+        p_alice=0.7, # probabilité d'envoyer 1 pour Alice
+        p_bob=0.3, # probabilité d'envoyer 1 pour Bob
         num_bobs=784,
         disconnect_percentage=15, # 15% des Bobs seront déconnectés
-        message_length=100,
+        message_length=100, # Nombre total de messages échangés (chaque message est un bit)
         buffer_size=20
     )

@@ -143,19 +143,21 @@ class CNNAutoencoder(nn.Module):
         
         # Mis à jour pour correspondre à l'architecture du modèle sauvegardé
         self.encoder = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),  # Changé de 16 à 32
+            nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),  # Changé de 8 à 64
+            nn.Conv2d(16, 8, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
         
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2, padding=0),  # Paramètres modifiés
+            nn.ConvTranspose2d(8, 16, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, 1, kernel_size=2, stride=2, padding=0),  # Paramètres modifiés
-            nn.Sigmoid()  # Ajout d'une activation sigmoid pour une sortie [0,1]
+            nn.ConvTranspose2d(16, 8, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(8, 1, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.Sigmoid()
         )
         
     def forward(self, x, failure_mask=None):

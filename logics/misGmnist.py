@@ -14,11 +14,11 @@ import os
 import pickle
 
 # Définition des hyperparamètres
-DISCONNECT_PERCENTAGE = 0.6
+DISCONNECT_PERCENTAGE = 0.6 # Pourcentage de pixels déconnectés
 LEARNING_RATE =1e-3
 NUM_EPOCHS = 15
 BATCH_SIZE = 64
-K_NEIGHBORS = 8
+K_NEIGHBORS = 8 # Nombre de voisins pour les connexions KNN dans le graphe
 
 # Choix du device(GPU ou CPU)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

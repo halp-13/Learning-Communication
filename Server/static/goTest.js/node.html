@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        class Node {
+    static Nodes = {}; // Stocke tous les nœuds
+    static p_values = {};
+
+    constructor(node_id, p_one_value, buffer_size = 20, learning_rate = 0.001) {
+        this.node_id = node_id;
+        this.p_one_value = p_one_value;
+        this.buffer_size = buffer_size;
+        this.buffer = {};
+        this.guess_buffer = {};
+        this.connected_nodes = [];
+        this.p_values = {};
+        this.learning_rate = learning_rate;
+        this.loss_history = {};
+        this.sents_message = [];
+        
+        Node.Nodes[node_id] = this;
+        Node.p_values[node_id] = 0.5;
+    }
+
+    static reset() {
+        Node.Nodes = {};
+        Node.p_values = {};
+    }
+
+    connect(other_node) {
+        if (!this.connected_nodes.includes(other_node)) {
+            this.connected_nodes.push(other_node);
+            this.p_values[other_node.node_id] = 0.5;
+        }
+    }
+
+    sendMessagePValue(p_one_value) {
+        return Math.random() < p_one_value ? 1 : 0;
+    }
+
+    sendMessagePValueBuffer(p_one_value, buffer) {
+        if (buffer.length === 0) {
+            let bit = this.sendMessagePValue(p_one_value);
+            buffer.push(bit);
+            return bit;
+        }
+
+        let actual_pvalue_0 = buffer.reduce((a, b) => a + b, 0) / (buffer.length + 1);
+        let actual_pvalue_1 = (buffer.reduce((a, b) => a + b, 0) + 1) / (buffer.length + 1);
+        
+        let distance_0 = Math.abs(p_one_value - actual_pvalue_0);
+        let distance_1 = Math.abs(p_one_value - actual_pvalue_1);
+
+        let bit = distance_0 < distance_1 ? 0 : 1;
+        if (bit === 1) this.sents_message.push(bit);
+        return bit;
+    }
+
+    sendMessage() {
+        return this.sendMessagePValue(this.p_one_value);
+    }
+
+    guessNodeBit(node_id) {
+        if (!(node_id in this.guess_buffer)) {
+            this.guess_buffer[node_id] = this.buffer[node_id] || [];
+        }
+
+        let p_value = this.p_values[node_id] || 0.5;
+        let buffer = this.guess_buffer[node_id];
+        let bit = this.guessBit(p_value, buffer);
+        
+        if (this.guess_buffer[node_id].length >= this.buffer_size) {
+            this.guess_buffer[node_id].shift();
+        }
+        this.guess_buffer[node_id].push(bit);
+        return bit;
+    }
+
+    guessBit(p_one_value, buffer) {
+        if (buffer.length === 0) {
+            return this.sendMessagePValue(p_one_value);
+        }
+
+        let actual_pvalue_0 = buffer.reduce((a, b) => a + b, 0) / (buffer.length + 1);
+        let actual_pvalue_1 = (buffer.reduce((a, b) => a + b, 0) + 1) / (buffer.length + 1);
+        
+        return Math.abs(p_one_value - actual_pvalue_0) < Math.abs(p_one_value - actual_pvalue_1) ? 0 : 1;
+    }
+
+    receiveMessage(message, sender_id) {
+        if (!(sender_id in this.buffer)) {
+            this.buffer[sender_id] = [];
+        }
+        
+        if (this.buffer[sender_id].length >= this.buffer_size) {
+            this.buffer[sender_id].shift();
+        }
+
+        this.buffer[sender_id].push(message);
+    }
+
+    computeError(sender_id) {
+        if (!(sender_id in this.buffer) || this.buffer[sender_id].length === 0) {
+            return 0;
+        }
+
+        let true_p = this.buffer[sender_id].reduce((a, b) => a + b, 0) / this.buffer[sender_id].length;
+        let predicted_p = this.p_values[sender_id] || 0.5;
+        return true_p - predicted_p;
+    }
+
+    gradientDescentUpdate(sender_id, error) {
+        if (sender_id in this.p_values) {
+            this.p_values[sender_id] += this.learning_rate * error;
+            this.p_values[sender_id] = Math.max(0, Math.min(1, this.p_values[sender_id]));
+        }
+    }
+
+    static vote(node_id) {
+        let node = Node.Nodes[node_id];
+        let votes = node.connected_nodes.map(n => n.guessNodeBit(node_id));
+        return votes.sort((a, b) => votes.filter(v => v === a).length - votes.filter(v => v === b).length).pop();
+    }
+
+    processTurn() {
+        let send_result = this.sendMessage();
+        this.connected_nodes.forEach(other_node => {
+            other_node.receiveMessage(send_result, this.node_id);
+        });
+        this.learn();
+    }
+
+    learn() {
+        let total_loss = 0;
+        this.connected_nodes.forEach(other_node => {
+            let error = this.computeError(other_node.node_id);
+            this.gradientDescentUpdate(other_node.node_id, error);
+            total_loss += error ** 2;
+            if (!(other_node.node_id in this.loss_history)) {
+                this.loss_history[other_node.node_id] = [];
+            }
+            this.loss_history[other_node.node_id].push(error ** 2);
+        });
+    }
+
+    static connectNodes(list_nodes) {
+        list_nodes.forEach(([node1, node2]) => {
+            Node.Nodes[node1].connect(Node.Nodes[node2]);
+            Node.Nodes[node2].connect(Node.Nodes[node1]);
+        });
+    }
+
+    static turn() {
+        Object.values(Node.Nodes).forEach(node => node.processTurn());
+    }
+}
+// Importer la classe Node (si elle est dans un autre fichier, utiliser require ou import)
+
+// Création des nœuds
+const nodeA = new Node('A', 0.7);
+const nodeB = new Node('B', 0.4);
+const nodeC = new Node('C', 0.9);
+
+// Connexion des nœuds
+Node.connectNodes([
+    ['A', 'B'],
+    ['A', 'C'],
+    ['B', 'C']
+]);
+// Simulation de plusieurs tours
+const numTurns = 10;
+for (let i = 0; i < numTurns; i++) {
+    console.log(`\n--- Tour ${i + 1} ---`);
+    Node.turn(); // Exécute un tour complet pour tous les nœuds
+    
+    // console.log("Estimations des p-values :");
+    console.log(`Node A estime B: ${nodeA.pValues['B']}, C: ${nodeA.pValues['C']}`);
+    console.log(`Node B estime A: ${nodeB.pValues['A']}, C: ${nodeB.pValues['C']}`);
+    console.log(`Node C estime A: ${nodeC.pValues['A']}, B: ${nodeC.pValues['B']}`);
+}
+
+// Vote pour deviner le bit d'un nœud
+console.log("\nRésultats du vote :");
+console.log(`Vote pour A: ${Node.vote('A')}`);
+console.log(`Vote pour B: ${Node.vote('B')}`);
+console.log(`Vote pour C: ${Node.vote('C')}`);
+
+    </script>
+</body>
+</html>

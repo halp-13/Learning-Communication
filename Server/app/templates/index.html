@@ -302,7 +302,7 @@
                                         </tr>
                                     </tbody>
                                 </table>
-                                <button onclick="simulate_mis()" class="btn btn-success">Run</button>
+                                <button onclick="simulate_mis_once()" class="btn btn-success">Run</button>
                                 <button onclick="mis_graph_coloration()" class="btn btn-primary">Color Graph</button>
 
                             </div>
@@ -1122,7 +1122,9 @@
             const vertex = {
                 key: `${Name}-${i + 1}`, // Clé unique pour chaque sommet
                 // loc: `${i * 100} 0`, // Position (x y) du sommet (peut être ignorée si un layout est utilisé)
-                color: options.vertexColor || "lightblue" // Couleur du sommet
+                color: options.vertexColor || "lightblue", // Couleur du sommet
+                p_one:Math.random(),
+
             };
             vertices.push(vertex);
         }
@@ -1374,6 +1376,8 @@
         const neighbors = new Map();
         for (const node of nodes) {
             neighbors.set(node.key, new Set());
+            console.log(node.p_one);
+            
         }
 
         for (const edge of edges) {
@@ -1417,7 +1421,8 @@
             // Chaque nœud envoie aléatoirement 0 ou 1
             const messages = new Map();
             for (const nodeKey of remainingNodes) {
-                messages.set(nodeKey, Math.random() < 0.5 ? 0 : 1); // 0 ou 1 aléatoire
+                node = nodes.find(node => node.key === nodeKey);
+                messages.set(nodeKey, Math.random() < node.p_one ? 0 : 1); // 0 ou 1 aléatoire
             }
 
             // Vérifier les nœuds qui peuvent rejoindre le MIS
@@ -1452,7 +1457,7 @@
         return Array.from(mis); // Retourner le MIS sous forme de tableau
     }
 
-    function simulate_mis() {
+    function simulate_mis_once() {
 
         const all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
         updateNodes(all_nodes, 'lightblue');
@@ -1465,6 +1470,20 @@
         myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
 
     }
+
+    function simsimulate_mis(){
+        const all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
+        updateNodes(all_nodes, 'lightblue');
+
+        const mis = findMIS(myDiagram.model);
+        // console.log("Maximal Independent Set (MIS):", mis);
+
+        // Mettre en évidence les nœuds du MIS dans le diagramme
+        updateNodes(mis, 'green');
+        myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
+
+    }
+    
 
     function mis_graph_coloration() {
         // coloration de graphe avec l'algorithme mis 

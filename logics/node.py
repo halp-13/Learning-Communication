@@ -243,7 +243,8 @@ class Node2:
 
         p_value = self.p_values.get(node_id, 0.5)
         buffer = self.buffer.get(node_id,[])
-        return self.guess_bit(p_value,buffer)
+        # return self.guess_bit(p_value,buffer)
+        return self.send_message(p_value)
         
     def guess_bit(self,p_one_value,buffer):
         """

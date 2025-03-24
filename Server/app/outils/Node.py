@@ -222,6 +222,7 @@ class Node:
         if len(buffer) >= self.buffer_size:
             self.guess_buffer[node_id].pop(0)
         self.guess_buffer[node_id].append(bit)
+   
         return bit
         
     def guess_bit(self,p_one_value,buffer):

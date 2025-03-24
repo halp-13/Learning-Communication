@@ -29,13 +29,14 @@ def Alice_Bob_2(p_alice, p_bob, message_length, disconnect_percentage):
     Node.connect_nodes([(1, 2)])
 
 
-    num_turns = 100
+    num_turns = 1000
     for turn in range(num_turns):
         # print(f"\n--- Tour {turn + 1} ---")
         Node.turn()
 
 
-
+    true = []
+    predicted = []
 
     for step in range(1, message_length + 1):
         bit_from_alice = alice.send_message()
@@ -45,6 +46,8 @@ def Alice_Bob_2(p_alice, p_bob, message_length, disconnect_percentage):
         guess = "."
         if disconnected :
             guess = alice.guess_node_bit(bob.node_id)
+            true.append(bit_from_bob)
+            predicted.append(guess)
 
 
    
@@ -54,12 +57,18 @@ def Alice_Bob_2(p_alice, p_bob, message_length, disconnect_percentage):
 
         message = json.dumps({"step": step,"alice":bit_from_alice,"bob":bit_from_bob ,"guess":guess, "disconnected":disconnected}) + "\n"
         yield message
-        time.sleep(1)
+        # time.sleep(1)
     for node in [alice, bob]:
         print(f"\nNœud {node.node_id} - Comparaison des p-values:")
         for other_node_id, estimated_p in node.p_values.items():
             true_p = Node.get_node(other_node_id).p_one_value
             print(f"  Nœud {other_node_id} - Estimé: {estimated_p:.4f}, Vrai: {true_p:.4f}, Erreur: {abs(estimated_p - true_p):.4f}")
+
+    print(true , sum(true))
+    print(predicted , sum(predicted))
+    correct_predictions = sum(1 for real, predicted in zip(true, predicted) if real == predicted)
+    accuracy = (correct_predictions / message_length) * 100
+    print(f"Prédictions correctes: {correct_predictions} / {message_length} ({accuracy:.2f}%)")
 
 def Alice_Bob(p_alice, p_bob, message_length, disconnect_percentage):
     

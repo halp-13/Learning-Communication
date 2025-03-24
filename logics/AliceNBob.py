@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-
+from sklearn.ensemble import RandomForestClassifier
 class Node:
     """
     Cette classe représente un nœud dans la communication P2P.
@@ -72,10 +72,15 @@ class Alice(Node):
     Version améliorée d'Alice qui utilise un modèle d'apprentissage
     pour prédire les bits des Bobs déconnectés.
     """
-    def __init__(self, p_one, buffer_size=20):
+    def __init__(self, p_one, buffer_size=20,model_type = "logistic"):
         super().__init__("Alice", p_one, buffer_size)
         self.bob_history = {}
-        self.model = LogisticRegression(random_state=42)
+        if model_type == "logistic":
+            self.model = LogisticRegression(random_state=42, class_weight='balanced', max_iter=1000)
+        elif model_type == "random_forest":           
+            self.model = RandomForestClassifier(random_state=42, n_estimators=50)
+        else:
+            raise ValueError("model_type must be 'logistic' or 'random_forest'")
         self.is_model_trained = False
         self.training_data = []
         self.training_labels = []
@@ -91,13 +96,17 @@ class Alice(Node):
             self.bob_history[bob_id].pop(0)
 
         self.bob_history[bob_id].append(bit)
+        p_one_bob = sum(self.bob_history[bob_id]) / len(self.bob_history[bob_id])
         
-        features = [bob_id, len(self.bob_history[bob_id])]
+        # Crée les features pour l'entraînement du modèle
+        features = [bob_id, p_one_bob, len(self.bob_history[bob_id])]
+        
         self.training_data.append(features)
         self.training_labels.append(bit)
+        
 
         # Limite aussi la taille des données d'entraînement pour garder les plus récentes
-        if len(self.training_data) > self.buffer_size * 10:  # Buffer plus grand pour l'apprentissage
+        if len(self.training_data) > self.buffer_size :
             self.training_data.pop(0)
             self.training_labels.pop(0)
     
@@ -122,12 +131,13 @@ class Alice(Node):
         """
         Utilise le modèle entraîné pour prédire le bit d'un Bob déconnecté.
         """
-        if not self.is_model_trained:
+        # Si le modèle n'est pas encore entraîné, on devine le bit
+        if not self.is_model_trained or bob_id not in self.bob_history:
             return self.guess_message()
-        
-        bob_msg_count = len(self.bob_history.get(bob_id, []))
-        features = np.array([[bob_id, bob_msg_count]])
-        
+
+        p_one_bob = sum(self.bob_history[bob_id]) / len(self.bob_history[bob_id])
+        features = np.array([[bob_id, p_one_bob, len(self.bob_history[bob_id])]])
+        # Prédiction de la probabilité d'envoyer 1
         try:
             proba = self.model.predict_proba(features)[0][1]
             bit_prediction = 1 if random.random() < proba else 0
@@ -137,16 +147,17 @@ class Alice(Node):
             return self.guess_message()
 
 
-def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, disconnect_percentage=20, message_length=100, buffer_size=20):
+def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, disconnect_percentage=20, message_length=100, buffer_size=20, model_type="logistic"):
     """
     Lance une simulation améliorée avec plusieurs Bobs.
     """
-    alice = Alice(p_alice, buffer_size)
+    alice = Alice(p_alice, buffer_size, model_type)
+    print(f"Simulation started with the '{model_type}' model.")
     bobs = [Node(f"Bob_{i}", p_bob, buffer_size) for i in range(num_bobs)]
     
     num_disconnected = int(num_bobs * disconnect_percentage / 100)
     disconnected_bobs = random.sample(range(num_bobs), num_disconnected)
-    disconnect_steps = {bob_id: random.randint(1, message_length-1) for bob_id in disconnected_bobs} # Étapes de déconnexion
+    disconnect_steps = {bob_id: random.randint((message_length/4), message_length-1) for bob_id in disconnected_bobs} # Étapes de déconnexion
     
     results = {
         "real_bits": {},
@@ -175,7 +186,6 @@ def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, discon
         for bob_id, bob in enumerate(bobs):
             if bob_id in disconnected_bobs and step == disconnect_steps[bob_id] and not bob.is_disconnected:
                 bob.is_disconnected = True
-                print(f"** Bob_{bob_id} is now disconnected (step {step})! **")
             
             bit_from_alice = alice.send_message()
             if bit_from_alice is not None and not bob.is_disconnected:
@@ -193,9 +203,6 @@ def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, discon
             else:
                 predicted_bit = alice.predict_message(bob_id)
                 results["predicted_bits"][bob_id].append(predicted_bit)
-        
-        if step % 25 == 0 or step == message_length:
-            print(f"[Progress]: {step}/{message_length} steps completed.")
     
     print("\n--- Simulation Results ---")
     
@@ -214,12 +221,24 @@ def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, discon
         if min_length > 0:
             correct_predictions = sum(1 for p, w in zip(predictions, would_send) if p == w)
             accuracy = (correct_predictions / min_length) * 100
+            ones_in_would_send = sum(would_send) / min_length * 100
+            ones_in_predictions = sum(predictions) / min_length * 100
             
+            #Cette partie du code permet d’afficher les détails pour chaque Bob.  
+            #Étant donné le nombre élevé de Bobs (784), 
+            #afin d’éviter un trop grand nombre d’affichages lors de l’exécution,  
+            #nous avons mis ce bloc en commentaire.  
+            #Cependant, si vous souhaitez visualiser ces détails, 
+            #il suffit de retirer les triple quotes autour du bloc ci-dessous.  
+            '''
             print(f"\nBob_{bob_id}:")
             print(f"  - Disconnected at step: {disconnect_step}")
             print(f"  - Number of predictions: {min_length}")
             print(f"  - Correct predictions: {correct_predictions}")
             print(f"  - Accuracy: {accuracy:.2f}%")
+            print(f"  - Probability of being 1 in unsent messages: {ones_in_would_send:.2f}%")
+            print(f"  - Probability of being 1 in predicted messages: {ones_in_predictions:.2f}%")
+            print(f"  - Difference in the probability of being 1: {abs(ones_in_would_send - ones_in_predictions):.2f}%")
             
 
             expected_str = ''.join(str(bit) for bit in would_send)
@@ -230,13 +249,32 @@ def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, discon
                         
             match_indicators = ''.join(['✓' if e == p else '✗' for e, p in zip(would_send, predictions)])
             print(f"  - Comparison:    {match_indicators}")
-            
+            '''
             total_correct += correct_predictions
             total_predictions += min_length
     
     if total_predictions > 0:
         overall_accuracy = (total_correct / total_predictions) * 100
         print(f"\nOverall prediction accuracy: {overall_accuracy:.2f}%")
+        # Calculate overall percentage of 1s in all would_send and predicted bits
+        all_would_send = []
+        all_predictions = []
+        for bob_id in disconnected_bobs:
+            disconnect_step = disconnect_steps[bob_id]
+            predictions = results["predicted_bits"][bob_id]
+            would_send = results["would_send_bits"][bob_id][disconnect_step:]
+            
+            min_length = min(len(predictions), len(would_send))
+            all_would_send.extend(would_send[:min_length])
+            all_predictions.extend(predictions[:min_length])
+
+        overall_ones_in_would_send = sum(all_would_send) / len(all_would_send) * 100 if all_would_send else 0
+        overall_ones_in_predictions = sum(all_predictions) / len(all_predictions) * 100 if all_predictions else 0
+
+        print(f"Overall probability of being 1 in unsent messages: {overall_ones_in_would_send:.2f}%")
+        print(f"Overall probability of being 1 in predicted messages: {overall_ones_in_predictions:.2f}%")
+        print(f"Overall difference in probabilities: {abs(overall_ones_in_would_send - overall_ones_in_predictions):.2f}%")
+
         
         naive_correct = int(total_predictions * (1 - p_bob)) if p_bob <= 0.5 else int(total_predictions * p_bob)
         naive_accuracy = (naive_correct / total_predictions) * 100
@@ -254,11 +292,15 @@ def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, discon
 
 
 if __name__ == "__main__":
+    # pour choisir le modèle à utiliser, décommentez la ligne correspondante
+    model_type = "random_forest"
+    #model_type = "logistic"
     simulate_enhanced_communication(
         p_alice=0.7, # probabilité d'envoyer 1 pour Alice
-        p_bob=0.3, # probabilité d'envoyer 1 pour Bob
+        p_bob=0.5, # probabilité d'envoyer 1 pour Bob
         num_bobs=784,
         disconnect_percentage=15, # 15% des Bobs seront déconnectés
-        message_length=100, # Nombre total de messages échangés (chaque message est un bit)
-        buffer_size=20
+        message_length=1000, # Nombre total de messages échangés (chaque message est un bit)
+        buffer_size=40, # Taille du buffer pour chaque nœud
+        model_type=model_type
     )

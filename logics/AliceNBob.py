@@ -131,12 +131,14 @@ class Alice(Node):
         """
         Utilise le modèle entraîné pour prédire le bit d'un Bob déconnecté.
         """
-        # Si le modèle n'est pas encore entraîné, on devine le bit
+        # Si le modèle n'est pas encore entraîné ou si le Bob n'a pas d'historique de messages
         if not self.is_model_trained or bob_id not in self.bob_history:
             return self.guess_message()
-
-        p_one_bob = sum(self.bob_history[bob_id]) / len(self.bob_history[bob_id])
-        features = np.array([[bob_id, p_one_bob, len(self.bob_history[bob_id])]])
+        # Crée les features pour la prédiction du bit du Bob
+        # en prenant en compte les derniers messages reçus par le Bob(limité par buffer_size)
+        recent_history = self.bob_history[bob_id][-self.buffer_size:]
+        p_one_bob = sum(recent_history) / len(recent_history)
+        features = np.array([[bob_id, p_one_bob, len(recent_history)]])
         # Prédiction de la probabilité d'envoyer 1
         try:
             proba = self.model.predict_proba(features)[0][1]

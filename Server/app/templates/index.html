@@ -97,7 +97,7 @@
                                 <table class="table">
 
                                     <tbody class="h-100">
-                            
+
 
                                         <tr>
                                             <th scope="row">Ratio 1 Bob</th>
@@ -167,7 +167,7 @@
                             </div>
                             <div class="card-body d-flex p-0 m-0 flex-column">
                                 <table class="table">
-                          
+
                                     <tbody class="h-100">
                                         <tr>
                                             <th scope="row">Ratio 1 Bob</th>
@@ -230,9 +230,9 @@
                             <div class="card-body d-flex p-0 m-0 flex-column">
                                 <!-- table form  -->
                                 <table class="table">
-               
+
                                     <tbody class="h-100">
-                     
+
                                         <tr>
                                             <th scope="row">drop probability</th>
                                             <td>
@@ -290,12 +290,13 @@
                             <div class="card-body d-flex p-0 m-0 flex-column">
                                 <!-- table form  -->
                                 <table class="table">
-                           
+
                                     <tbody class="h-100">
                                         <tr>
                                             <th scope=" row">Most neighbord</th>
                                             <td>
-                                                <input type="checkbox" name="most_neighbord" id="start_node_with_most_neighbors" onclick="changeMisOption()"
+                                                <input type="checkbox" name="most_neighbord"
+                                                    id="start_node_with_most_neighbors" onclick="changeMisOption()"
                                                     value="1">
                                             </td>
 
@@ -470,8 +471,8 @@
             const color = node.data.color === "white" ? "black" : "white";
             myDiagram.model.setDataProperty(node.data, "color", color);
         }
-                
-            
+
+
     }
 
     function updateLink(fromNodeKey, toNodeKey, color) {
@@ -558,7 +559,7 @@
                 },
                 new go.Binding("fill", "color") // Lie la couleur à la propriété "color"
             ),
-  
+
         );
 
         // Création de la grille
@@ -631,7 +632,7 @@
         myDiagram.nodeTemplate =
             $(go.Node, "Auto",
                 { locationSpot: go.Spot.Center, click: nodeClicked },
-                
+
                 new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
                 $(go.Shape, "RoundedRectangle",
                     { fill: "lightblue" },
@@ -681,7 +682,7 @@
 
 
         config_proxy.simunlation_started = true;
-        await fetch_alice_bob( p_alice, p_bob, message_length, disconnect_percentage);
+        await fetch_alice_bob(p_alice, p_bob, message_length, disconnect_percentage);
         // simulateCommunication(p_alice, p_bob, steps);
     }
 
@@ -692,7 +693,7 @@
         // }
         var btn = document.getElementById('alice_n_bob_btn');
 
-        if(config_proxy.simunlation_started){
+        if (config_proxy.simunlation_started) {
             btn.classList.remove('btn-danger');
             btn.classList.add('btn-success');
             btn.innerHTML = 'Start';
@@ -731,11 +732,11 @@
 
         while (config_proxy.simunlation_started) {
             const { done, value } = await reader.read();
-            if (done ) { 
+            if (done) {
                 simulate_alice_bob();
                 break;
             }
-          
+
 
 
             const chunk = decoder.decode(value, { stream: true });
@@ -955,7 +956,7 @@
         fetch_alice_mnist(drop_probability, num_samples);
     }
 
-    async function fetch_alice_mnist( drop_probability = 0.6, num_samples = 10) {
+    async function fetch_alice_mnist(drop_probability = 0.6, num_samples = 10) {
         const canvas = document.createElement('canvas');
         canvas.width = 28; // Largeur du canvas
         canvas.height = 28; // Hauteur du canvas
@@ -1123,7 +1124,8 @@
                 key: `${Name}-${i + 1}`, // Clé unique pour chaque sommet
                 // loc: `${i * 100} 0`, // Position (x y) du sommet (peut être ignorée si un layout est utilisé)
                 color: options.vertexColor || "lightblue", // Couleur du sommet
-                p_one:Math.random(),
+                p_one: Math.random(),
+                id: i + 1
 
             };
             vertices.push(vertex);
@@ -1367,22 +1369,22 @@
         return model;
     }
 
-    function findMIS(graphModel) {
-        const nodes = graphModel.nodeDataArray; // Liste des nœuds
-        const edges = graphModel.linkDataArray; // Liste des arêtes
+    function findMIS(graphModel, nodes, edges) {
+
+
         const mis = new Set(); // Ensemble pour stocker le MIS
 
         // Créer une map pour stocker les voisins de chaque nœud
         const neighbors = new Map();
         for (const node of nodes) {
             neighbors.set(node.key, new Set());
-            console.log(node.p_one);
-            
-        }
+            // console.log(node.p_one);
 
+        }
+        // on ajoute les voisins de chaque noeud
         for (const edge of edges) {
-            neighbors.get(edge.from).add(edge.to);
-            neighbors.get(edge.to).add(edge.from);
+            neighbors[0].
+                neighbors.get(edge.to).add(edge.from);
         }
 
         // Fonction pour vérifier si un nœud peut rejoindre le MIS
@@ -1457,12 +1459,98 @@
         return Array.from(mis); // Retourner le MIS sous forme de tableau
     }
 
-    function simulate_mis_once() {
+    async function simulate_mis_once() {
+
 
         const all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
         updateNodes(all_nodes, 'lightblue');
 
-        const mis = findMIS(myDiagram.model);
+        const nodes = myDiagram.model.nodeDataArray; // Liste des nœuds
+        const edges = myDiagram.model.linkDataArray; // Liste des arêtes
+        let connextions = [];
+
+        for (const edge of edges) {
+            let e = [parseInt(edge.from.split('-')[1]), parseInt(edge.to.split('-')[1])];
+            let re = [parseInt(edge.to.split('-')[1]), parseInt(edge.from.split('-')[1])];
+
+            if (e in connextions || re in connextions) {
+                continue;
+            }
+
+            connextions.push(e);
+        }
+
+
+
+        const reponse = await fetch('/mis/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nodes, edges, connextions, nb_nodes: nodes.length })
+        });
+        console.log(reponse);
+        if (!reponse.ok) {
+            console.error("Erreur:", reponse.statusText);
+            return;
+        }
+
+        const reader = reponse.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        cpt = 0 ;
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.trim() === '') continue; // Ignorer les lignes vides
+
+                try {
+                    // Parser la ligne en tant qu'objet JSON
+                    if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
+                        const data = JSON.parse(line);
+                        console.log(data); // Afficher dans la console
+                        // Afficher dans l'interface utilisateur
+                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+
+                 
+
+                        for (let i = 0; i < data.mis.length; i++) {
+                            let bob = "Node-" + data.mis[i];
+                            updateNode(bob, 'red');
+                        }
+                        // for(const [i, v] of Object.entries(data.remaining_nodes)){
+                        //     const id = "Node-" + v;
+                        //     if (v === 1){
+                        //         updateNode(id, 'white');
+                        //     }
+                        //     else{
+                        //         updateNode(id, 'black');
+                        //     }
+                        // }
+                        
+
+                        console.log(data); // Afficher dans la console
+                        // Afficher dans l'interface utilisateur
+                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+                    } else {
+                        console.log(line);
+                    }
+                } catch (error) {
+                    console.error('Erreur de parsing JSON :', error, line);
+                }
+            }
+
+            // Afficher dans une div HTML
+            // document.getElementById("output").innerText += chunk;
+
+        }
+
+        // const mis = findMIS(myDiagram.model, nodes, edges);
         // console.log("Maximal Independent Set (MIS):", mis);
 
         // Mettre en évidence les nœuds du MIS dans le diagramme
@@ -1471,19 +1559,22 @@
 
     }
 
-    function simsimulate_mis(){
+    function simsimulate_mis() {
+
         const all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
         updateNodes(all_nodes, 'lightblue');
 
-        const mis = findMIS(myDiagram.model);
+        const nodes = graphModel.nodeDataArray; // Liste des nœuds
+        const edges = graphModel.linkDataArray; // Liste des arêtes
+
+        const mis = findMIS(myDiagram.model, nodes, edges);
         // console.log("Maximal Independent Set (MIS):", mis);
 
         // Mettre en évidence les nœuds du MIS dans le diagramme
         updateNodes(mis, 'green');
         myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
-
     }
-    
+
 
     function mis_graph_coloration() {
         // coloration de graphe avec l'algorithme mis 

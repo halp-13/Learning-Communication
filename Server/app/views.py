@@ -414,3 +414,72 @@ def Alice_mnist(request):
         
     return StreamingHttpResponse(show_random_predictions(model, all_data, DEVICE, num_samples, drop_probability), content_type="application/json")
 
+
+
+def can_join_mis(node_key, neighbors, mis):
+    return all(neighbor not in mis for neighbor in neighbors[node_key])
+
+
+
+
+def simulation_mis(nodes,connextions ,start_with_most_neighbors=False):
+    """
+    Lance une simulation de communication multi-nœuds.
+    """
+    Node.reset()
+    nodes = [Node(node_id=i+1, p_one_value=random.random(), learning_rate=0.1) for i in range(nodes)]
+
+    print(connextions)
+    # Connecter les nœuds
+    Node.connect_nodes(connextions)
+
+    mis = set()
+    neighbors = {node.node_id: set() for node in nodes}
+    
+    for edge in connextions:
+        neighbors[edge[0]].add(edge[1])
+        neighbors[edge[1]].add(edge[0])
+
+    remaining_nodes = {node.node_id for node in nodes}
+    
+
+    cpt= 0
+    while remaining_nodes:
+        messages = {node.node_id: 0 if random.random() < node.p_one_value else 1 for node in nodes if node.node_id in remaining_nodes}
+        
+        for node_key in list(remaining_nodes):
+            if messages.get(node_key) == 1:
+                if all(messages.get(neighbor, 0) == 0 for neighbor in neighbors[node_key]) and can_join_mis(node_key, neighbors, mis):
+                    mis.add(node_key)
+        
+        for node_key in mis:
+            remaining_nodes.discard(node_key) # Supprimer les nœuds déjà dans l'ensemble indépendant maximal
+            remaining_nodes.difference_update(neighbors[node_key]) # Supprimer les voisins des nœuds déjà dans l'ensemble indépendant maximal
+
+        yield json.dumps({"mis":list(mis), "remaining_nodes":list(remaining_nodes), "messages":messages}) + "\n"
+        time.sleep(1)
+    
+
+    # mis = maximal_independent_set(nodes, connextions, start_with_most_neighbors=True)
+    
+    print(f"Ensemble indépendant maximal: {mis}")
+    
+
+
+@csrf_exempt
+def mis(request):
+    data = json.loads(request.body)  # Récupérer et parser les données JSON
+    nodes = data.get('nb_nodes', [])
+    edges = data.get('edges', [])
+    connextions = data.get('connextions', [])
+    nb_nodes = int(data.get('nb_nodes', None))
+
+    connextions = data.get('connextions', None)
+
+
+    if nb_nodes != None and connextions !=[]:
+
+        return StreamingHttpResponse(simulation_mis(nb_nodes,connextions), content_type="application/json")
+
+        
+    

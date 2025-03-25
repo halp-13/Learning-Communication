@@ -457,12 +457,16 @@
 
     function nodeClicked(e, node) {
         // handler pour le click sur un node
-        alert(config_proxy.layout);
+        // alert(config_proxy.layout);
+        const list_color = ['lightblue', 'green', 'red', 'yellow', 'black', 'white'];
+        // prend la couleur suivante
+        let color = list_color[(list_color.indexOf(node.data.color) + 1) % list_color.length];
+        myDiagram.model.setDataProperty(node.data, "color", color);
 
-        if (layout === "custom") {
-            const color = node.data.color === "white" ? "black" : "white";
-            myDiagram.model.setDataProperty(node.data, "color", color);
-        }
+        // if (layout === "custom") {
+            // const color = node.data.color === "white" ? "black" : "white";
+            // myDiagram.model.setDataProperty(node.data, "color", color);
+        // }
 
 
     }

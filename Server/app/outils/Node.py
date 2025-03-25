@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 
 
-class Node2:
+class Node:
     """
     Cette classe représente un nœud dans la communication P2P.
     Chaque nœud peut envoyer et recevoir des bits (0 ou 1).
@@ -67,7 +67,7 @@ class Node2:
         return bit_guess
     
 
-class Alice(Node2):
+class Alice(Node):
     """
     Version améliorée d'Alice qui utilise un modèle d'apprentissage
     pour prédire les bits des Bobs déconnectés.
@@ -128,7 +128,7 @@ class Alice(Node2):
             return self.guess_message()
 
 
-class Node:
+class Node_Mis:
     Nodes = {}  # Dictionnaire pour stocker tous les nœuds
     p_values = {}
 
@@ -150,8 +150,8 @@ class Node:
         self.p_values = {}  # Dictionnaire pour stocker les estimations de p-value des autres nœuds
         self.learning_rate = learning_rate  # Taux d'apprentissage pour la descente de gradient
         self.loss_history = {}  # Historique des erreurs locales
-        Node.Nodes[node_id] = self
-        Node.p_values[node_id] = 0.5  # Initialiser la p-value à 0.5 (aucune information)
+        Node_Mis.Nodes[node_id] = self
+        Node_Mis.p_values[node_id] = 0.5  # Initialiser la p-value à 0.5 (aucune information)
         self.sents_message=[]
 
     @staticmethod
@@ -159,8 +159,8 @@ class Node:
             """
             Réinitialise les nœuds.
             """
-            Node.Nodes = {}
-            Node.p_values = {}
+            Node_Mis.Nodes = {}
+            Node_Mis.p_values = {}
 
     def connect(self, other_node):
         """
@@ -306,8 +306,8 @@ class Node:
         Connecte les nœuds entre eux.
         """
         for node1, node2 in list_nodes:
-            Node.Nodes[node1].connect(Node.Nodes[node2])
-            Node.Nodes[node2].connect(Node.Nodes[node1])
+            Node_Mis.Nodes[node1].connect(Node_Mis.Nodes[node2])
+            Node_Mis.Nodes[node2].connect(Node_Mis.Nodes[node1])
 
     @staticmethod
     def turn():
@@ -316,7 +316,7 @@ class Node:
         """
     
 
-        for node in Node.Nodes.values():
+        for node in Node_Mis.Nodes.values():
             node.process_turn()
 
     @staticmethod
@@ -324,7 +324,7 @@ class Node:
         """
         Tout les nodes connecté à un node guess le bit de ce node et la majorité l'emporte
         """
-        node = Node.Nodes[node_id]
+        node = Node_Mis.Nodes[node_id]
         votes = []
         for n in  node.connected_nodes :
             bit = n.guess_node_bit(node_id)
@@ -357,7 +357,6 @@ class Node:
         total_loss = 0
         for other_node in self.connected_nodes:
             error = self.compute_error(other_node.node_id)
-            # print(f"Node {self.node_id} - Node {other_node.node_id} - Error: {error}")
             self.gradient_descent_update(other_node.node_id, error)
             total_loss += error ** 2  # Loss = erreur au carré (MSE)
             if other_node.node_id not in self.loss_history:
@@ -366,7 +365,7 @@ class Node:
                 
     @staticmethod
     def get_node(node_id):
-        return Node.Nodes[node_id]
+        return Node_Mis.Nodes[node_id]
 
  
     @staticmethod
@@ -375,7 +374,7 @@ class Node:
         Affiche l'historique des erreurs globales avec matplotlib.
         """
         plt.figure(figsize=(10, 6))
-        plt.plot(Node.loss_history, label="Loss moyenne globale")
+        plt.plot(Node_Mis.loss_history, label="Loss moyenne globale")
         plt.xlabel("Tours")
         plt.ylabel("Loss")
         plt.title("Évolution de la loss moyenne globale")

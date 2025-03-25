@@ -5,12 +5,11 @@ import numpy as np
 import torch
 from torchvision import datasets, transforms
 from django.views.decorators.csrf import csrf_exempt
-from PIL import Image
 import time
 import json
 from django.conf import settings
 
-from .outils.Node import Node, Alice , Node2
+from .outils.Node import Node, Alice , Node_Mis
 from .outils.CNNAutoencoder import CNNAutoencoder
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -18,57 +17,11 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def index(request):
     return render(request, 'index.html')
 
-def Alice_Bob_2(p_alice, p_bob, message_length, disconnect_percentage):
-    Node.reset()
-    alice = Node(node_id=1, p_one_value=p_alice, learning_rate=0.1)
-    bob = Node(node_id=2, p_one_value=p_bob, learning_rate=0.1)
 
+###############################################################
+# Fonctions pour les simulations de communication alice-bob
+###############################################################
 
-
-    # Connecter les nœuds
-    Node.connect_nodes([(1, 2)])
-
-
-    num_turns = 1000
-    for turn in range(num_turns):
-        # print(f"\n--- Tour {turn + 1} ---")
-        Node.turn()
-
-
-    true = []
-    predicted = []
-
-    for step in range(1, message_length + 1):
-        bit_from_alice = alice.send_message()
-        bit_from_bob = bob.send_message()
-        disconnected = step >= message_length * disconnect_percentage / 100
-
-        guess = "."
-        if disconnected :
-            guess = alice.guess_node_bit(bob.node_id)
-            true.append(bit_from_bob)
-            predicted.append(guess)
-
-
-   
-        else:
-            alice.receive_message(bit_from_bob,bob.node_id)
-            bob.receive_message(bit_from_alice,alice.node_id)
-
-        message = json.dumps({"step": step,"alice":bit_from_alice,"bob":bit_from_bob ,"guess":guess, "disconnected":disconnected}) + "\n"
-        yield message
-        # time.sleep(1)
-    for node in [alice, bob]:
-        print(f"\nNœud {node.node_id} - Comparaison des p-values:")
-        for other_node_id, estimated_p in node.p_values.items():
-            true_p = Node.get_node(other_node_id).p_one_value
-            print(f"  Nœud {other_node_id} - Estimé: {estimated_p:.4f}, Vrai: {true_p:.4f}, Erreur: {abs(estimated_p - true_p):.4f}")
-
-    print(true , sum(true))
-    print(predicted , sum(predicted))
-    correct_predictions = sum(1 for real, predicted in zip(true, predicted) if real == predicted)
-    accuracy = (correct_predictions / message_length) * 100
-    print(f"Prédictions correctes: {correct_predictions} / {message_length} ({accuracy:.2f}%)")
 
 def Alice_Bob(p_alice, p_bob, message_length, disconnect_percentage):
     
@@ -92,8 +45,7 @@ def Alice_Bob(p_alice, p_bob, message_length, disconnect_percentage):
         if not disconnected :
             alice.receive_message(bit_from_bob)
             bob.receive_message(bit_from_alice)
-            alice.learn()
-            bob.learn()
+   
         else:
             guess = alice.guess_message()
 
@@ -128,61 +80,12 @@ def AliceBob(request):
     disconnect_percentage = int(data.get('disconnect_percentage', 20))
 
 
-    return StreamingHttpResponse(Alice_Bob_2(p_alice,p_bob,message_length,disconnect_percentage), content_type="application/json")
+    return StreamingHttpResponse(Alice_Bob(p_alice,p_bob,message_length,disconnect_percentage), content_type="application/json")
     return StreamingHttpResponse(Alice_Bob(p_alice,p_bob,message_length,disconnect_percentage), content_type="application/json")
 
-def simulate_enhanced_communication_2(p_alice, p_bob, num_bobs, disconnect_percentage, message_length):
-    """
-    Lance une simulation améliorée avec plusieurs Bobs.
-    """
-    Node.reset()
-    alice = Node(node_id=1, p_one_value=p_alice, learning_rate=0.1)
-    bobs = [Node(node_id=i+2, p_one_value=random.random(),learning_rate=0.1) for i in range(num_bobs)]
-
-    # Connecter les nœuds
-    Node.connect_nodes([(1, bob.node_id) for bob in bobs])
-
-
-
-    num_disconnected = int(num_bobs * disconnect_percentage / 100)
-    disconnected_bobs = random.sample(range(1,num_bobs+1), num_disconnected)
-    disconnect_steps = {bob_id: random.randint(1, message_length-1) for bob_id in disconnected_bobs} # Étapes de déconnexion
-
-
-    for step in range(1, message_length + 1):
-        bit_from_alices = 0
-        bit_from_bobs = {}
-        would_send_bits = {}
-        disconnecteds = []
-
-        bit_from_alice = alice.send_message()
-        for bob in bobs:
-
-            
-            would_send_bits[bob.node_id] = alice.guess_node_bit(bob.node_id)
-
-            bit_from_bob = bob.send_message()
-            bit_from_bobs[bob.node_id] = bit_from_bob
-
-            if bob.node_id in disconnected_bobs and step == disconnect_steps[bob.node_id]:
-                disconnecteds.append(bob.node_id)
-
-            if bob.node_id not in disconnected_bobs or step < disconnect_steps[bob.node_id]:
-    
-                alice.receive_message(bit_from_bob,bob.node_id)
-                bob.receive_message(bit_from_alice,alice.node_id)
-        alice.learn()
-
-        message = json.dumps({"step": step , "alice":bit_from_alices, "bob":bit_from_bobs, "would_send":would_send_bits,"disconnecteds":disconnecteds}) + "\n"
-        yield message
-        time.sleep(1)
-
-    # for node in [alice] + bobs:
-    for node in [alice] :
-        print(f"\nNœud {node.node_id} - Comparaison des p-values:")
-        for other_node_id, estimated_p in node.p_values.items():
-            true_p = Node.get_node(other_node_id).p_one_value
-            print(f"  Nœud {other_node_id} - Estimé: {estimated_p:.4f}, Vrai: {true_p:.4f}, Erreur: {abs(estimated_p - true_p):.4f}")   
+###############################################################
+# Fonctions pour les simulations de communication alice-n-bob
+###############################################################
 
 
 def simulate_enhanced_communication(p_alice, p_bob, num_bobs, disconnect_percentage, message_length):
@@ -329,9 +232,12 @@ def AliceNBob(request):
     disconnect_percentage = int(data.get('disconnect_percentage', 20))
     message_length = int(data.get('message_length', 100))
 
-    return StreamingHttpResponse(simulate_enhanced_communication_2(p_alice,p_bob,num_bobs,disconnect_percentage, message_length), content_type="application/json")
+    return StreamingHttpResponse(simulate_enhanced_communication(p_alice,p_bob,num_bobs,disconnect_percentage, message_length), content_type="application/json")
 
 
+###############################################################
+# Fonctions pour les simulations de communication MNIST
+###############################################################
 
 # Charger le modèle sauvegardé
 model = CNNAutoencoder()
@@ -339,7 +245,6 @@ model = CNNAutoencoder()
 pth = settings.BASE_DIR / "static/data_pth/mnist_autoencoder.pth"
 model.load_state_dict(torch.load(pth))
 
-# model.load_state_dict(torch.load("mnist_autoencoder.pth"))
 model.eval()  # Mettre le modèle en mode évaluation
 
 # Définir la transformation pour les nouvelles données
@@ -414,7 +319,9 @@ def Alice_mnist(request):
         
     return StreamingHttpResponse(show_random_predictions(model, all_data, DEVICE, num_samples, drop_probability), content_type="application/json")
 
-
+###############################################################
+# Fonctions pour les simulations de communication mis
+###############################################################
 
 def can_join_mis(node_key, neighbors, mis):
     return all(neighbor not in mis for neighbor in neighbors[node_key])
@@ -426,12 +333,12 @@ def simulation_mis(nodes,connextions ,start_with_most_neighbors=False):
     """
     Lance une simulation de communication multi-nœuds.
     """
-    Node.reset()
-    nodes = [Node(node_id=i+1, p_one_value=random.random(), learning_rate=0.1) for i in range(nodes)]
+    Node_Mis.reset()
+    nodes = [Node_Mis(node_id=i+1, p_one_value=random.random(), learning_rate=0.1) for i in range(nodes)]
 
     print(connextions)
     # Connecter les nœuds
-    Node.connect_nodes(connextions)
+    Node_Mis.connect_nodes(connextions)
 
     mis = set()
     neighbors = {node.node_id: set() for node in nodes}

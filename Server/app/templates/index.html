@@ -93,7 +93,6 @@
                                 Options
                             </div>
                             <div class="card-body d-flex p-0 m-0 flex-column">
-                                <!-- table form  -->
                                 <table class="table">
 
                                     <tbody class="h-100">
@@ -115,7 +114,7 @@
                                             <th scope="row">Message length</th>
                                             <td>
                                                 <input type="number" name="message_length" id="message_length"
-                                                    value="10">
+                                                    value="100">
                                             </td>
                                         </tr>
                                         <tr>
@@ -126,19 +125,9 @@
 
                                             </td>
                                         </tr>
-                                        <!-- <tr>
-                                        <th scope="row">2</th>
-                                        <td>Jacob</td>
-                            
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">3</th>
-                                        <td>Larry</td>
-                                    
-                                    </tr> -->
+
                                     </tbody>
                                 </table>
-                                <!-- <button onclick="bob_alice()">Run</button> -->
                                 <button type="button" id="alice_bob_btn" onclick="simulate_alice_bob()"
                                     class="btn btn-success m-1">Start</button>
                             </div>
@@ -355,57 +344,54 @@
 
 {% block scripts %}
 <script>
-    // $(document).ready(function () {
-    //     console.log("jQuery ready");
-    // });
 
 
+    // On récupère le canevas
     const canevas_box = document.getElementById('canvasBox');
-    var $ = go.GraphObject.make;
+    var $ = go.GraphObject.make; // Raccourci pour accéder à la bibliothèque GoJS
 
+    // Créartion d'une variable globale la configuration 
     const config = {
         simunlation_started: false,
         layout: "layout",
         mode: "alice_bob",
     }
-
+    // Création d'un proxy pour détecter les changements de la configuration
     const handler = {
         set(obj, prop, newValue) {
             console.log(`La propriété "${prop}" a changé de ${obj[prop]} à ${newValue}`);
-            obj[prop] = newValue; // Mettre à jour la valeur
-            return true; // Indiquer que la mise à jour a réussi
+            obj[prop] = newValue;
+            return true;
         }
     };
-
+    //
     const config_proxy = new Proxy(config, handler);
 
+    // Création du diagramme
     var myDiagram = $(go.Diagram, "myDiagramDiv", {
         "undoManager.isEnabled": true, // Activer le gestionnaire d'annulation
-
         "panningTool.isEnabled": false, // Désactiver le déplacement du diagramme
-        isReadOnly: false, // Permet de cliquer sur les cellules
-        // allowZoom: false,
-        // allowSelect: true, 
+        isReadOnly: false, // Permet de cliquer sur les cellules 
         initialAutoScale: go.AutoScale.Uniform
     });
 
     function addNode(name) {
-        // var newNodeKey = "N" + (myDiagram.model.nodeDataArray.length + 1);
+        /* Ajouter un nœud au diagramme */
+
         var newNodeKey = name;
         var x = Math.random() * 400;
         var y = Math.random() * 400;
         myDiagram.startTransaction("add node");
         myDiagram.model.addNodeData({ key: newNodeKey, loc: x + " " + y, color: "lightblue" });
         myDiagram.model.addLinkData({ from: "Alice", to: newNodeKey, color: "black" }); // Relier chaque nouveau nœud à A
-        // myDiagram.model.addLinkData({ from: newNodeKey, to: "A", color: "black" }); // Ajouter un lien retour pour rendre le graphe non orienté
         myDiagram.commitTransaction("add node");
         // Ajouter le nouveau nœud à la liste des nœuds
         var option = document.createElement("option");
         option.text = newNodeKey;
-        // document.getElementById("nodes").add(option);
     }
 
     function updateNode(nodeKey, color) {
+        // Mettre à jour la couleur d'un nœud
         var node = myDiagram.model.findNodeDataForKey(nodeKey);
         if (node) {
             myDiagram.startTransaction("update node");
@@ -417,6 +403,7 @@
     }
 
     function updateNodes(nodeKeys, color) {
+        // Mettre à jour la couleur de plusieurs nœuds
         myDiagram.startTransaction("update nodes");
 
         const model = myDiagram.model;
@@ -433,6 +420,7 @@
     }
 
     function deleteNode(nodeKey) {
+        // Supprimer un nœud
         var node = myDiagram.model.findNodeDataForKey(nodeKey);
         if (node) {
             myDiagram.startTransaction("delete node");
@@ -444,16 +432,19 @@
     }
 
     function findLink(fromNodeKey, toNodeKey) {
+        // Rechercher un lien entre deux nœuds
         return myDiagram.model.linkDataArray.find(link =>
             (link.from === fromNodeKey && link.to === toNodeKey) ||
             (link.from === toNodeKey && link.to === fromNodeKey));
     }
 
     function getNodeLinks(nodeKey) {
+        // Récupérer les liens d'un nœud
         return myDiagram.model.linkDataArray.filter(link => link.from === nodeKey || link.to === nodeKey);
     }
 
     function deleteLink(fromNodeKey, toNodeKey) {
+        // Supprimer un lien
         var link = findLink(fromNodeKey, toNodeKey);
         if (link) {
             myDiagram.startTransaction("delete link");
@@ -465,6 +456,7 @@
     }
 
     function nodeClicked(e, node) {
+        // handler pour le click sur un node
         alert(config_proxy.layout);
 
         if (layout === "custom") {
@@ -475,7 +467,9 @@
 
     }
 
+
     function updateLink(fromNodeKey, toNodeKey, color) {
+        // Mettre à jour la couleur d'un lien
         var link = findLink(fromNodeKey, toNodeKey);
         if (link) {
             myDiagram.startTransaction("update link");
@@ -487,25 +481,20 @@
     }
 
     function linkClicked(e, link) {
-        // alert("Lien cliqué entre " + link.data.from + " et " + link.data.to);
-        // updateLink(link.data.from, link.data.to, "red");
+        // handler pour le click sur un lien
+
     }
 
-    _deleteNode = function () {
-        var nodeKey = document.getElementById("nodes").value;
-        deleteNode(nodeKey);
-    }
-
-    _deleteLink = function () {
-        var fromNodeKey = "Alice";
-        var toNodeKey = document.getElementById("nodes").value;
-        deleteLink(fromNodeKey, toNodeKey);
-    }
+    /* ALICE BOB */
 
     function alice_bob() {
+        // Change le mode pour la simulation Alice-Bob
+
+        // change le layout
         config_proxy.Layout = "force";
         changeLayout();
 
+        // Création du diagramme
         myDiagram.nodeTemplate =
             $(go.Node, "Auto",
                 { locationSpot: go.Spot.Center, click: nodeClicked },
@@ -517,12 +506,14 @@
                     { margin: 8 },
                     new go.Binding("text", "key"))
             );
-
+        // Création du lien
         myDiagram.linkTemplate =
             $(go.Link,
                 { corner: 5, click: linkClicked },
                 $(go.Shape, new go.Binding("stroke", "color"))
             );
+
+        // Création des nœuds
         myDiagram.model = new go.GraphLinksModel(
             [
                 { key: "Alice", loc: "0 0", color: "lightblue" },
@@ -535,7 +526,102 @@
 
     }
 
+    async function simulate_alice_bob() {
+        // Simuler la communication entre Alice et Bob
+
+        var btn = document.getElementById('alice_bob_btn');
+        if (config_proxy.simunlation_started) {
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-success');
+            btn.innerHTML = 'Start';
+            config_proxy.simunlation_started = false;
+            return;
+        }
+
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-danger');
+        btn.innerHTML = 'Stop';
+        let p_alice = parseFloat(document.getElementById('ratio_alice').value);
+        let p_bob = parseFloat(document.getElementById('ratio_bob').value);
+        let message_length = parseInt(document.getElementById('message_length').value);
+        let disconnect_percentage = parseInt(document.getElementById('disconnect_percentage').value);
+
+
+        config_proxy.simunlation_started = true;
+        await fetch_alice_bob(p_alice, p_bob, message_length, disconnect_percentage);
+    }
+
+    async function fetch_alice_bob(p_alice = 0.2, p_bob = 0.5, message_length = 10, disconnect_percentage = 2, message = '') {
+        // Récupérer les données de la simulation Alice-Bob en streaming
+
+        const response = await fetch(`/AliceBob/?p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}&message=${message}`);
+        let console_alice_bob_alice = document.getElementById('console_alice_bob_alice');
+        let width_console_alice = console_alice_bob_alice.clientWidth;
+        let case_width_alice = (width_console_alice / 4) - 3;
+        console_alice_bob_alice.style.wordSpacing = case_width_alice + 'px';
+
+        const len_steps = message_length.toString().length;
+
+        if (!response.ok) {
+            console.error("Erreur:", response.statusText);
+            return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        console_alice_bob_alice.value = '';
+        updateNode('Bob', 'lightblue');
+
+
+        while (config_proxy.simunlation_started) {
+            const { done, value } = await reader.read();
+            if (done) {
+                simulate_alice_bob();
+                break;
+            }
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.trim() === '') continue; // Ignorer les lignes vides
+
+                try {
+                    // Parser la ligne en tant qu'objet JSON
+                    const data = JSON.parse(line);
+                    console.log(data); // Afficher dans la console
+
+                    if (data.step) {
+                        let zero_before = '0'.repeat(len_steps - data.step.toString().length);
+                        let alice_line = [`${zero_before}${data.step}`, data.alice, data.bob, data.guess];
+                        console_alice_bob_alice.value += alice_line.join(' ') + '\n';
+                        // scroll J'usqu'à la fin
+                        console_alice_bob_alice.scrollTop = console_alice_bob_alice.scrollHeight;
+                        // change Node color to red if data.disconneted is true
+                        if (data.disconnected) {
+                            updateNode('Bob', 'red');
+                        }
+                    }
+
+                    if (data.accuracy) {
+
+                    }
+
+
+
+                } catch (error) {
+                    console.error('Erreur de parsing JSON :', error, line);
+                }
+            }
+
+
+        }
+        config_proxy.simunlation_started = false;
+    }
+
+    /*  MNIST */
+
     function alice_mnist() {
+        // Change le mode pour la simulation Alice-MNIST
 
         // remove diagram layout CircularLayout Sample
         config_proxy.Layout = "layout";
@@ -578,385 +664,15 @@
         myDiagram.model = new go.GraphLinksModel({ nodeDataArray });
     }
 
-    function mis() {
-        config_proxy.Layout = "force";
-        changeLayout();
-
-        const vertices = document.getElementById('nb_nodes').value;
-
-        myDiagram.nodeTemplate =
-            $(go.Node, "Auto",
-                { locationSpot: go.Spot.Center, click: nodeClicked },
-                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-                $(go.Shape, "RoundedRectangle",
-                    { fill: "lightblue" },
-                    new go.Binding("fill", "color")),
-                $(go.TextBlock,
-                    { margin: 8 },
-                    new go.Binding("text", "key"))
-            );
-
-        myDiagram.linkTemplate =
-            $(go.Link,
-                { corner: 5, click: linkClicked },
-                $(go.Shape, new go.Binding("stroke", "color"))
-            );
-
-        const myDiagramModel = generateGraph("eulerien", vertices, {
-            vertexColor: "lightblue",
-            edgeColor: "gray"
-        });
-
-        // Assigner le modèle au diagramme
-        myDiagram.model = myDiagramModel;
-    }
-
-    function showLoader() {
-        document.getElementById("loader").style.display = "block";
-    }
-
-    function hideLoader() {
-        document.getElementById("loader").style.display = "none";
-    }
-
-    function updateProgress(progress) {
-        document.getElementById("progressBar").value = progress;
-        document.getElementById("progressText").innerText = progress + "%";
-    }
-
-    function alice_n_bob() {
-
-        const vertices = document.getElementById('nb_nodes').value;
-
-        config_proxy.Layout = "force";
-        myDiagram.nodeTemplate =
-            $(go.Node, "Auto",
-                { locationSpot: go.Spot.Center, click: nodeClicked },
-
-                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-                $(go.Shape, "RoundedRectangle",
-                    { fill: "lightblue" },
-                    new go.Binding("fill", "color")),
-                $(go.TextBlock,
-                    { margin: 8 },
-                    new go.Binding("text", "key"))
-            );
-
-        myDiagram.linkTemplate =
-            $(go.Link,
-                { corner: 5, click: linkClicked },
-                $(go.Shape, new go.Binding("stroke", "color"))
-            );
-
-
-
-        const myDiagramModel = generateGraph("alice_n_bob", vertices, {
-            vertexColor: "lightblue",
-            edgeColor: "gray"
-        });
-
-        myDiagram.model = myDiagramModel;
-
-
-        return true;
-    }
-
-    async function simulate_alice_bob() {
-
-        var btn = document.getElementById('alice_bob_btn');
-        if (config_proxy.simunlation_started) {
-            btn.classList.remove('btn-danger');
-            btn.classList.add('btn-success');
-            btn.innerHTML = 'Start';
-            config_proxy.simunlation_started = false;
-            return;
-        }
-
-        btn.classList.remove('btn-success');
-        btn.classList.add('btn-danger');
-        btn.innerHTML = 'Stop';
-        let p_alice = parseFloat(document.getElementById('ratio_alice').value);
-        let p_bob = parseFloat(document.getElementById('ratio_bob').value);
-        let message_length = parseInt(document.getElementById('message_length').value);
-        let disconnect_percentage = parseInt(document.getElementById('disconnect_percentage').value);
-
-
-        config_proxy.simunlation_started = true;
-        await fetch_alice_bob(p_alice, p_bob, message_length, disconnect_percentage);
-        // simulateCommunication(p_alice, p_bob, steps);
-    }
-
-    async function simulate_alice_n_bob() {
-        // const ok = alice_n_bob();
-        // console.log({ ok });
-        // if (ok) {
-        // }
-        var btn = document.getElementById('alice_n_bob_btn');
-
-        if (config_proxy.simunlation_started) {
-            btn.classList.remove('btn-danger');
-            btn.classList.add('btn-success');
-            btn.innerHTML = 'Start';
-            config_proxy.simunlation_started = false;
-            return;
-        }
-        btn.classList.remove('btn-success');
-        btn.classList.add('btn-danger');
-        btn.innerHTML = 'Stop';
-        config_proxy.simunlation_started = true;
-        await fetch_alice_n_bob();
-
-
-    }
-
-    async function fetch_alice_bob(p_alice = 0.2, p_bob = 0.5, message_length = 10, disconnect_percentage = 2, message = '') {
-        // const response = await fetch("/AliceBob/");
-        const response = await fetch(`/AliceBob/?p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}&message=${message}`);
-        let console_alice_bob_alice = document.getElementById('console_alice_bob_alice');
-        let width_console_alice = console_alice_bob_alice.clientWidth;
-        let case_width_alice = (width_console_alice / 4) - 3;
-        console_alice_bob_alice.style.wordSpacing = case_width_alice + 'px';
-
-        const len_steps = message_length.toString().length;
-
-        if (!response.ok) {
-            console.error("Erreur:", response.statusText);
-            return;
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-        console_alice_bob_alice.value = '';
-        updateNode('Bob', 'lightblue');
-
-
-        while (config_proxy.simunlation_started) {
-            const { done, value } = await reader.read();
-            if (done) {
-                simulate_alice_bob();
-                break;
-            }
-
-
-
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-                if (line.trim() === '') continue; // Ignorer les lignes vides
-
-                try {
-                    // Parser la ligne en tant qu'objet JSON
-                    const data = JSON.parse(line);
-                    console.log(data); // Afficher dans la console
-                    // check if step is in data
-                    if (data.step) {
-                        let zero_before = '0'.repeat(len_steps - data.step.toString().length);
-                        let alice_line = [`${zero_before}${data.step}`, data.alice, data.bob, data.guess];
-                        console_alice_bob_alice.value += alice_line.join(' ') + '\n';
-                        // scroll to bottom
-                        console_alice_bob_alice.scrollTop = console_alice_bob_alice.scrollHeight;
-                        // change Node color to red if data.disconneted is true
-                        if (data.disconnected) {
-                            updateNode('Bob', 'red');
-                        }
-                    }
-
-                    if (data.accuracy) {
-
-                    }
-
-
-
-                } catch (error) {
-                    console.error('Erreur de parsing JSON :', error, line);
-                }
-            }
-
-            // Afficher dans une div HTML
-            // document.getElementById("output").innerText += chunk;
-        }
-        config_proxy.simunlation_started = false;
-    }
-
-    async function fetch_alice_n_bob() {
-
-        const nb_bob = document.getElementById('nb_nodes').value;
-        const p_alice = document.getElementById('ratio_alice_n').value;
-        const p_bob = document.getElementById('ratio_bob_n').value;
-        const message_length = document.getElementById('message_length_n').value;
-        const disconnect_percentage = document.getElementById('disconnect_percentage_n').value;
-        const response = await fetch(`/AliceNBob/?nb_bob=${nb_bob}&p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}`);
-
-
-        // const response = await fetch("/AliceNBob/");
-
-        if (!response.ok) {
-            console.error("Erreur:", response.statusText);
-            return;
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-                if (line.trim() === '') continue; // Ignorer les lignes vides
-
-                try {
-                    // Parser la ligne en tant qu'objet JSON
-                    if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
-                        // const data = JSON.parse(line.slice(5));
-                        const data = JSON.parse(line);
-                        let disconnecteds = data.disconnecteds;
-
-                        for (let i = 0; i < disconnecteds.length; i++) {
-                            let bob = "Bob-" + disconnecteds[i];
-                            updateNode(bob, 'red');
-                        }
-
-
-
-                        console.log(data); // Afficher dans la console
-                        // Afficher dans l'interface utilisateur
-                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
-
-
-                    } else {
-
-                        console.log(line);
-
-                    }
-
-                    // const data = JSON.parse(line);
-                    // console.log(data); // Afficher dans la console
-                    // // Afficher dans l'interface utilisateur
-                    // // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
-                    // console.log(data);
-                } catch (error) {
-                    console.error('Erreur de parsing JSON :', error, line);
-                }
-            }
-
-            // Afficher dans une div HTML
-            // document.getElementById("output").innerText += chunk;
-        }
-    }
-
-    function toggle_blur_ovelay(show = false) {
-        var botton_option = document.getElementById('botton_option');
-        var blur_box = document.getElementById('blur_box');
-        if (show) {
-            botton_option.classList.add('overlay');
-            blur_box.classList.add('blurred-background');
-            blur_box.classList.remove('d-none');
-        } else {
-            botton_option.classList.remove('overlay');
-            blur_box.classList.remove('blurred-background');
-            blur_box.classList.add('d-none');
-        }
-
-
-    }
-
-    function _changeMode() {
-        var e = document.getElementById("mode-select");
-        config_proxy.mode = e.options[e.selectedIndex].value;
-        changeMode();
-    }
-
-    function changeMode() {
-
-        var e = document.getElementById("mode-select");
-        var title = document.getElementById('Titre');
-        // allowMove: false,
-
-        toggle_blur_ovelay(false);
-
-        // enable select graph type
-        var graph_type = document.getElementById('graph_type');
-        graph_type.disabled = false;
-
-        // get all box_options and  add class h-0
-        var box_options = document.getElementsByClassName('box_options');
-        // remove all box_options
-        for (var i = 0; i < box_options.length; i++) {
-            box_options[i].classList.remove('d-flex');
-            box_options[i].classList.add('d-none');
-        }
-
-        myDiagram.allowMove = true;
-
-        config_proxy.simunlation_started = false;
-
-        if (config_proxy.mode == 'alice_bob') {
-            alice_bob();
-            title.innerHTML = 'Alice-Bob';
-            // get box 
-            var box_alice_bob = document.getElementById('box_alice_bob');
-            box_alice_bob.classList.remove('d-none');
-            box_alice_bob.classList.add('d-flex');
-
-            toggle_blur_ovelay(true);
-
-
-        }
-        else if (config_proxy.mode == 'alice_n_bob') {
-            document.getElementById('nb_nodes').value = 10;
-            alice_n_bob();
-            title.innerHTML = 'Alice-N-Bob';
-            let box = document.getElementById('box_alice_n_bob');
-            box.classList.remove('d-none');
-            box.classList.add('d-flex');
-            graph_type.disabled = true;
-
-        }
-        else if (config_proxy.mode == 'alice_mnist') {
-            // alice_n_bob(784);
-            alice_mnist();
-            // desactiver les deplacements des Nodes 
-            myDiagram.allowMove = false;
-            title.innerHTML = 'Alice-NNIST';
-            let box = document.getElementById('box_Mnist');
-            box.classList.remove('d-none');
-            box.classList.add('d-flex');
-
-            toggle_blur_ovelay(true);
-        }
-        else if (config_proxy.mode == 'mis') {
-            // bob_alice();
-            // redraw();
-
-            title.innerHTML = 'MIS';
-            let box = document.getElementById('box_mis');
-            box.classList.remove('d-none');
-            box.classList.add('d-flex');
-            document.getElementById('nb_nodes').value = 10;
-            mis();
-        }
-        var e = document.getElementById("mode-select");
-        e.value = config_proxy.mode;
-
-    }
-
-    function update_nb_bob() {
-        var nb_bob = document.getElementById('nb_bob').value;
-        // alice_n_bob(nb_bob);
-    }
-
     function simulate_alice_mnist() {
+        // Simuler la reconstruction d'une image MNIST
         let drop_probability = document.getElementById('drop_probability').value;
         let num_samples = document.getElementById('num_samples').value;
         fetch_alice_mnist(drop_probability, num_samples);
     }
 
     async function fetch_alice_mnist(drop_probability = 0.6, num_samples = 10) {
+        // Récupérer les données de la simulation MNIST en streaming
         const canvas = document.createElement('canvas');
         canvas.width = 28; // Largeur du canvas
         canvas.height = 28; // Hauteur du canvas
@@ -1088,12 +804,536 @@
         }
     }
 
-    function reset_mnist_colors() {
+
+    /* MIS */
+    function mis() {
+        config_proxy.Layout = "force";
+        changeLayout();
+
+        const vertices = document.getElementById('nb_nodes').value;
+
+        myDiagram.nodeTemplate =
+            $(go.Node, "Auto",
+                { locationSpot: go.Spot.Center, click: nodeClicked },
+                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                $(go.Shape, "RoundedRectangle",
+                    { fill: "lightblue" },
+                    new go.Binding("fill", "color")),
+                $(go.TextBlock,
+                    { margin: 8 },
+                    new go.Binding("text", "key"))
+            );
+
+        myDiagram.linkTemplate =
+            $(go.Link,
+                { corner: 5, click: linkClicked },
+                $(go.Shape, new go.Binding("stroke", "color"))
+            );
+
+        const myDiagramModel = generateGraph("eulerien", vertices, {
+            vertexColor: "lightblue",
+            edgeColor: "gray"
+        });
+
+        // Assigner le modèle au diagramme
+        myDiagram.model = myDiagramModel;
+    }
+
+    function findMIS(graphModel, nodes, edges) {
+
+
+        const mis = new Set(); // Ensemble pour stocker le MIS
+
+        // Créer une map pour stocker les voisins de chaque nœud
+        const neighbors = new Map();
+        for (const node of nodes) {
+            neighbors.set(node.key, new Set());
+            // console.log(node.p_one);
+
+        }
+        // on ajoute les voisins de chaque noeud
+        for (const edge of edges) {
+            neighbors[0].
+                neighbors.get(edge.to).add(edge.from);
+        }
+
+        // Fonction pour vérifier si un nœud peut rejoindre le MIS
+        function canJoinMIS(nodeKey) {
+            for (const neighbor of neighbors.get(nodeKey)) {
+                if (mis.has(neighbor)) {
+                    return false; // Un voisin est déjà dans le MIS
+                }
+            }
+            return true;
+        }
+
+        // Simulation des tours
+        let remainingNodes = new Set(nodes.map(node => node.key)); // Nœuds restants
+
+        start_node_with_most_neighbors = document.getElementById('start_node_with_most_neighbors').checked;
+
+        if (start_node_with_most_neighbors) {
+            let max_neighbors = 0;
+            let start_node = '';
+            for (const nodeKey of remainingNodes) {
+                if (neighbors.get(nodeKey).size > max_neighbors) {
+                    max_neighbors = neighbors.get(nodeKey).size;
+                    start_node = nodeKey;
+                }
+            }
+            mis.add(start_node);
+            remainingNodes.delete(start_node);
+            for (const neighbor of neighbors.get(start_node)) {
+                remainingNodes.delete(neighbor);
+            }
+        }
+        let cpt = 0;
+        while (remainingNodes.size > 0) {
+
+            // Chaque nœud envoie aléatoirement 0 ou 1
+            const messages = new Map();
+            for (const nodeKey of remainingNodes) {
+                node = nodes.find(node => node.key === nodeKey);
+                messages.set(nodeKey, Math.random() < node.p_one ? 0 : 1); // 0 ou 1 aléatoire
+            }
+
+            // Vérifier les nœuds qui peuvent rejoindre le MIS
+            for (const nodeKey of remainingNodes) {
+                if (messages.get(nodeKey) === 1) {
+                    let allNeighborsSendZero = true;
+                    for (const neighbor of neighbors.get(nodeKey)) {
+                        if (messages.get(neighbor) === 1) {
+                            allNeighborsSendZero = false;
+                            break;
+                        }
+                    }
+                    if (allNeighborsSendZero && canJoinMIS(nodeKey)) {
+                        mis.add(nodeKey); // Ajouter au MIS
+                    }
+                }
+            }
+
+            // Mettre à jour les nœuds restants
+            for (const nodeKey of mis) {
+                remainingNodes.delete(nodeKey); // Retirer les nœuds du MIS
+                for (const neighbor of neighbors.get(nodeKey)) {
+                    remainingNodes.delete(neighbor); // Retirer les voisins
+                }
+            }
+            cpt++;
+
+        }
+        document.getElementById('tours_mis').innerText = cpt;
+        document.getElementById('mis_size').innerText = mis.size;
+
+        return Array.from(mis); // Retourner le MIS sous forme de tableau
+    }
+
+    async function simulate_mis_once() {
+
+
+        const all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
+        updateNodes(all_nodes, 'lightblue');
+
+        const nodes = myDiagram.model.nodeDataArray; // Liste des nœuds
+        const edges = myDiagram.model.linkDataArray; // Liste des arêtes
+        let connextions = [];
+
+        for (const edge of edges) {
+            let e = [parseInt(edge.from.split('-')[1]), parseInt(edge.to.split('-')[1])];
+            let re = [parseInt(edge.to.split('-')[1]), parseInt(edge.from.split('-')[1])];
+
+            if (e in connextions || re in connextions) {
+                continue;
+            }
+
+            connextions.push(e);
+        }
+
+
+
+        const reponse = await fetch('/mis/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nodes, edges, connextions, nb_nodes: nodes.length })
+        });
+        console.log(reponse);
+        if (!reponse.ok) {
+            console.error("Erreur:", reponse.statusText);
+            return;
+        }
+
+        const reader = reponse.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        cpt = 0;
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.trim() === '') continue; // Ignorer les lignes vides
+
+                try {
+                    // Parser la ligne en tant qu'objet JSON
+                    if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
+                        const data = JSON.parse(line);
+                        console.log(data); // Afficher dans la console
+                        // Afficher dans l'interface utilisateur
+                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+
+
+
+                        for (let i = 0; i < data.mis.length; i++) {
+                            let bob = "Node-" + data.mis[i];
+                            updateNode(bob, 'red');
+                        }
+                        // for(const [i, v] of Object.entries(data.remaining_nodes)){
+                        //     const id = "Node-" + v;
+                        //     if (v === 1){
+                        //         updateNode(id, 'white');
+                        //     }
+                        //     else{
+                        //         updateNode(id, 'black');
+                        //     }
+                        // }
+
+
+                        console.log(data); // Afficher dans la console
+                        // Afficher dans l'interface utilisateur
+                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+                    } else {
+                        console.log(line);
+                    }
+                } catch (error) {
+                    console.error('Erreur de parsing JSON :', error, line);
+                }
+            }
+
+            // Afficher dans une div HTML
+            // document.getElementById("output").innerText += chunk;
+
+        }
+
+        // const mis = findMIS(myDiagram.model, nodes, edges);
+        // console.log("Maximal Independent Set (MIS):", mis);
+
+        // Mettre en évidence les nœuds du MIS dans le diagramme
+        updateNodes(mis, 'green');
+        myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
+
+    }
+
+    function simsimulate_mis() {
+
+        const all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
+        updateNodes(all_nodes, 'lightblue');
+
+        const nodes = graphModel.nodeDataArray; // Liste des nœuds
+        const edges = graphModel.linkDataArray; // Liste des arêtes
+
+        const mis = findMIS(myDiagram.model, nodes, edges);
+        // console.log("Maximal Independent Set (MIS):", mis);
+
+        // Mettre en évidence les nœuds du MIS dans le diagramme
+        updateNodes(mis, 'green');
+        myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
+    }
+
+    function mis_graph_coloration() {
+        // coloration de graphe avec l'algorithme mis 
+        let nb_colors = 0;
+        let mis = findMIS(myDiagram.model);
         let nodes = myDiagram.model.nodeDataArray;
-        for (let i = 0; i < nodes.length; i++) {
-            updateNode(nodes[i].key, 'lightblue');
+        let edges = myDiagram.model.linkDataArray;
+        let colors = new Map();
+        let neighbors = new Map();
+        for (const node of nodes) {
+            neighbors.set(node.key, new Set());
+        }
+
+        for (const edge of edges) {
+            neighbors.get(edge.from).add(edge.to);
+            neighbors.get(edge.to).add(edge.from);
+        }
+
+        for (const node of nodes) {
+            colors.set(node.key, 0);
+        }
+
+        for (const node of mis) {
+            colors.set(node, 1);
+        }
+
+        for (const node of nodes) {
+            if (colors.get(node.key) === 0) {
+                let available_colors = new Set();
+                for (const neighbor of neighbors.get(node.key)) {
+                    if (colors.get(neighbor) > 0) {
+                        available_colors.add(colors.get(neighbor));
+                    }
+                }
+                let color = 1;
+                while (available_colors.has(color)) {
+                    color++;
+                }
+                colors.set(node.key, color);
+                nb_colors = Math.max(nb_colors, color);
+            }
+        }
+
+        for (const node of nodes) {
+            updateNode(node.key, colors.get(node.key) === 0 ? 'lightblue' : `hsl(${360 * colors.get(node.key) / nb_colors}, 100%, 50%)`);
+        }
+
+        document.getElementById('mis_coloration').innerText = nb_colors;
+
+
+
+
+
+    }
+
+
+    /* ALICE N BOB */
+    function alice_n_bob() {
+
+        const vertices = document.getElementById('nb_nodes').value;
+
+        config_proxy.Layout = "force";
+        myDiagram.nodeTemplate =
+            $(go.Node, "Auto",
+                { locationSpot: go.Spot.Center, click: nodeClicked },
+
+                new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                $(go.Shape, "RoundedRectangle",
+                    { fill: "lightblue" },
+                    new go.Binding("fill", "color")),
+                $(go.TextBlock,
+                    { margin: 8 },
+                    new go.Binding("text", "key"))
+            );
+
+        myDiagram.linkTemplate =
+            $(go.Link,
+                { corner: 5, click: linkClicked },
+                $(go.Shape, new go.Binding("stroke", "color"))
+            );
+
+
+
+        const myDiagramModel = generateGraph("alice_n_bob", vertices, {
+            vertexColor: "lightblue",
+            edgeColor: "gray"
+        });
+
+        myDiagram.model = myDiagramModel;
+
+
+        return true;
+    }
+
+    async function simulate_alice_n_bob() {
+        // const ok = alice_n_bob();
+        // console.log({ ok });
+        // if (ok) {
+        // }
+        var btn = document.getElementById('alice_n_bob_btn');
+
+        if (config_proxy.simunlation_started) {
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-success');
+            btn.innerHTML = 'Start';
+            config_proxy.simunlation_started = false;
+            return;
+        }
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-danger');
+        btn.innerHTML = 'Stop';
+        config_proxy.simunlation_started = true;
+        await fetch_alice_n_bob();
+
+
+    }
+
+    async function fetch_alice_n_bob() {
+
+        const nb_bob = document.getElementById('nb_nodes').value;
+        const p_alice = document.getElementById('ratio_alice_n').value;
+        const p_bob = document.getElementById('ratio_bob_n').value;
+        const message_length = document.getElementById('message_length_n').value;
+        const disconnect_percentage = document.getElementById('disconnect_percentage_n').value;
+        const response = await fetch(`/AliceNBob/?nb_bob=${nb_bob}&p_alice=${p_alice}&p_bob=${p_bob}&message_length=${message_length}&disconnect_percentage=${disconnect_percentage}`);
+
+
+        // const response = await fetch("/AliceNBob/");
+
+        if (!response.ok) {
+            console.error("Erreur:", response.statusText);
+            return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.trim() === '') continue; // Ignorer les lignes vides
+
+                try {
+                    // Parser la ligne en tant qu'objet JSON
+                    if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
+                        // const data = JSON.parse(line.slice(5));
+                        const data = JSON.parse(line);
+                        let disconnecteds = data.disconnecteds;
+
+                        for (let i = 0; i < disconnecteds.length; i++) {
+                            let bob = "Bob-" + disconnecteds[i];
+                            updateNode(bob, 'red');
+                        }
+
+
+
+                        console.log(data); // Afficher dans la console
+                        // Afficher dans l'interface utilisateur
+                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+
+
+                    } else {
+
+                        console.log(line);
+
+                    }
+
+                    // const data = JSON.parse(line);
+                    // console.log(data); // Afficher dans la console
+                    // // Afficher dans l'interface utilisateur
+                    // // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+                    // console.log(data);
+                } catch (error) {
+                    console.error('Erreur de parsing JSON :', error, line);
+                }
+            }
+
+            // Afficher dans une div HTML
+            // document.getElementById("output").innerText += chunk;
         }
     }
+
+
+    /*  Mode de simulation */
+
+    function toggle_blur_ovelay(show = false) {
+        var botton_option = document.getElementById('botton_option');
+        var blur_box = document.getElementById('blur_box');
+        if (show) {
+            botton_option.classList.add('overlay');
+            blur_box.classList.add('blurred-background');
+            blur_box.classList.remove('d-none');
+        } else {
+            botton_option.classList.remove('overlay');
+            blur_box.classList.remove('blurred-background');
+            blur_box.classList.add('d-none');
+        }
+
+
+    }
+
+    function _changeMode() {
+        var e = document.getElementById("mode-select");
+        config_proxy.mode = e.options[e.selectedIndex].value;
+        changeMode();
+    }
+
+    function changeMode() {
+
+        var e = document.getElementById("mode-select");
+        var title = document.getElementById('Titre');
+        // allowMove: false,
+
+        toggle_blur_ovelay(false);
+
+        // enable select graph type
+        var graph_type = document.getElementById('graph_type');
+        graph_type.disabled = false;
+
+        // get all box_options and  add class h-0
+        var box_options = document.getElementsByClassName('box_options');
+        // remove all box_options
+        for (var i = 0; i < box_options.length; i++) {
+            box_options[i].classList.remove('d-flex');
+            box_options[i].classList.add('d-none');
+        }
+
+        myDiagram.allowMove = true;
+
+        config_proxy.simunlation_started = false;
+
+        if (config_proxy.mode == 'alice_bob') {
+            alice_bob();
+            title.innerHTML = 'Alice-Bob';
+            // get box 
+            var box_alice_bob = document.getElementById('box_alice_bob');
+            box_alice_bob.classList.remove('d-none');
+            box_alice_bob.classList.add('d-flex');
+
+            toggle_blur_ovelay(true);
+
+
+        }
+        else if (config_proxy.mode == 'alice_n_bob') {
+            document.getElementById('nb_nodes').value = 10;
+            alice_n_bob();
+            title.innerHTML = 'Alice-N-Bob';
+            let box = document.getElementById('box_alice_n_bob');
+            box.classList.remove('d-none');
+            box.classList.add('d-flex');
+            graph_type.disabled = true;
+
+        }
+        else if (config_proxy.mode == 'alice_mnist') {
+            // alice_n_bob(784);
+            alice_mnist();
+            // desactiver les deplacements des Nodes 
+            myDiagram.allowMove = false;
+            title.innerHTML = 'Alice-NNIST';
+            let box = document.getElementById('box_Mnist');
+            box.classList.remove('d-none');
+            box.classList.add('d-flex');
+
+            toggle_blur_ovelay(true);
+        }
+        else if (config_proxy.mode == 'mis') {
+            // bob_alice();
+            // redraw();
+
+            title.innerHTML = 'MIS';
+            let box = document.getElementById('box_mis');
+            box.classList.remove('d-none');
+            box.classList.add('d-flex');
+            document.getElementById('nb_nodes').value = 10;
+            mis();
+        }
+        var e = document.getElementById("mode-select");
+        e.value = config_proxy.mode;
+
+    }
+
+
+
+
+    /*  graph */
 
     function _generateGraph() {
         const vertices = document.getElementById('nb_nodes').value;
@@ -1369,266 +1609,6 @@
         return model;
     }
 
-    function findMIS(graphModel, nodes, edges) {
-
-
-        const mis = new Set(); // Ensemble pour stocker le MIS
-
-        // Créer une map pour stocker les voisins de chaque nœud
-        const neighbors = new Map();
-        for (const node of nodes) {
-            neighbors.set(node.key, new Set());
-            // console.log(node.p_one);
-
-        }
-        // on ajoute les voisins de chaque noeud
-        for (const edge of edges) {
-            neighbors[0].
-                neighbors.get(edge.to).add(edge.from);
-        }
-
-        // Fonction pour vérifier si un nœud peut rejoindre le MIS
-        function canJoinMIS(nodeKey) {
-            for (const neighbor of neighbors.get(nodeKey)) {
-                if (mis.has(neighbor)) {
-                    return false; // Un voisin est déjà dans le MIS
-                }
-            }
-            return true;
-        }
-
-        // Simulation des tours
-        let remainingNodes = new Set(nodes.map(node => node.key)); // Nœuds restants
-
-        start_node_with_most_neighbors = document.getElementById('start_node_with_most_neighbors').checked;
-
-        if (start_node_with_most_neighbors) {
-            let max_neighbors = 0;
-            let start_node = '';
-            for (const nodeKey of remainingNodes) {
-                if (neighbors.get(nodeKey).size > max_neighbors) {
-                    max_neighbors = neighbors.get(nodeKey).size;
-                    start_node = nodeKey;
-                }
-            }
-            mis.add(start_node);
-            remainingNodes.delete(start_node);
-            for (const neighbor of neighbors.get(start_node)) {
-                remainingNodes.delete(neighbor);
-            }
-        }
-        let cpt = 0;
-        while (remainingNodes.size > 0) {
-
-            // Chaque nœud envoie aléatoirement 0 ou 1
-            const messages = new Map();
-            for (const nodeKey of remainingNodes) {
-                node = nodes.find(node => node.key === nodeKey);
-                messages.set(nodeKey, Math.random() < node.p_one ? 0 : 1); // 0 ou 1 aléatoire
-            }
-
-            // Vérifier les nœuds qui peuvent rejoindre le MIS
-            for (const nodeKey of remainingNodes) {
-                if (messages.get(nodeKey) === 1) {
-                    let allNeighborsSendZero = true;
-                    for (const neighbor of neighbors.get(nodeKey)) {
-                        if (messages.get(neighbor) === 1) {
-                            allNeighborsSendZero = false;
-                            break;
-                        }
-                    }
-                    if (allNeighborsSendZero && canJoinMIS(nodeKey)) {
-                        mis.add(nodeKey); // Ajouter au MIS
-                    }
-                }
-            }
-
-            // Mettre à jour les nœuds restants
-            for (const nodeKey of mis) {
-                remainingNodes.delete(nodeKey); // Retirer les nœuds du MIS
-                for (const neighbor of neighbors.get(nodeKey)) {
-                    remainingNodes.delete(neighbor); // Retirer les voisins
-                }
-            }
-            cpt++;
-
-        }
-        document.getElementById('tours_mis').innerText = cpt;
-        document.getElementById('mis_size').innerText = mis.size;
-
-        return Array.from(mis); // Retourner le MIS sous forme de tableau
-    }
-
-    async function simulate_mis_once() {
-
-
-        const all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
-        updateNodes(all_nodes, 'lightblue');
-
-        const nodes = myDiagram.model.nodeDataArray; // Liste des nœuds
-        const edges = myDiagram.model.linkDataArray; // Liste des arêtes
-        let connextions = [];
-
-        for (const edge of edges) {
-            let e = [parseInt(edge.from.split('-')[1]), parseInt(edge.to.split('-')[1])];
-            let re = [parseInt(edge.to.split('-')[1]), parseInt(edge.from.split('-')[1])];
-
-            if (e in connextions || re in connextions) {
-                continue;
-            }
-
-            connextions.push(e);
-        }
-
-
-
-        const reponse = await fetch('/mis/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ nodes, edges, connextions, nb_nodes: nodes.length })
-        });
-        console.log(reponse);
-        if (!reponse.ok) {
-            console.error("Erreur:", reponse.statusText);
-            return;
-        }
-
-        const reader = reponse.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-        cpt = 0 ;
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-                if (line.trim() === '') continue; // Ignorer les lignes vides
-
-                try {
-                    // Parser la ligne en tant qu'objet JSON
-                    if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
-                        const data = JSON.parse(line);
-                        console.log(data); // Afficher dans la console
-                        // Afficher dans l'interface utilisateur
-                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
-
-                 
-
-                        for (let i = 0; i < data.mis.length; i++) {
-                            let bob = "Node-" + data.mis[i];
-                            updateNode(bob, 'red');
-                        }
-                        // for(const [i, v] of Object.entries(data.remaining_nodes)){
-                        //     const id = "Node-" + v;
-                        //     if (v === 1){
-                        //         updateNode(id, 'white');
-                        //     }
-                        //     else{
-                        //         updateNode(id, 'black');
-                        //     }
-                        // }
-                        
-
-                        console.log(data); // Afficher dans la console
-                        // Afficher dans l'interface utilisateur
-                        // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
-                    } else {
-                        console.log(line);
-                    }
-                } catch (error) {
-                    console.error('Erreur de parsing JSON :', error, line);
-                }
-            }
-
-            // Afficher dans une div HTML
-            // document.getElementById("output").innerText += chunk;
-
-        }
-
-        // const mis = findMIS(myDiagram.model, nodes, edges);
-        // console.log("Maximal Independent Set (MIS):", mis);
-
-        // Mettre en évidence les nœuds du MIS dans le diagramme
-        updateNodes(mis, 'green');
-        myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
-
-    }
-
-    function simsimulate_mis() {
-
-        const all_nodes = myDiagram.model.nodeDataArray.map(node => node.key);
-        updateNodes(all_nodes, 'lightblue');
-
-        const nodes = graphModel.nodeDataArray; // Liste des nœuds
-        const edges = graphModel.linkDataArray; // Liste des arêtes
-
-        const mis = findMIS(myDiagram.model, nodes, edges);
-        // console.log("Maximal Independent Set (MIS):", mis);
-
-        // Mettre en évidence les nœuds du MIS dans le diagramme
-        updateNodes(mis, 'green');
-        myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
-    }
-
-
-    function mis_graph_coloration() {
-        // coloration de graphe avec l'algorithme mis 
-        let nb_colors = 0;
-        let mis = findMIS(myDiagram.model);
-        let nodes = myDiagram.model.nodeDataArray;
-        let edges = myDiagram.model.linkDataArray;
-        let colors = new Map();
-        let neighbors = new Map();
-        for (const node of nodes) {
-            neighbors.set(node.key, new Set());
-        }
-
-        for (const edge of edges) {
-            neighbors.get(edge.from).add(edge.to);
-            neighbors.get(edge.to).add(edge.from);
-        }
-
-        for (const node of nodes) {
-            colors.set(node.key, 0);
-        }
-
-        for (const node of mis) {
-            colors.set(node, 1);
-        }
-
-        for (const node of nodes) {
-            if (colors.get(node.key) === 0) {
-                let available_colors = new Set();
-                for (const neighbor of neighbors.get(node.key)) {
-                    if (colors.get(neighbor) > 0) {
-                        available_colors.add(colors.get(neighbor));
-                    }
-                }
-                let color = 1;
-                while (available_colors.has(color)) {
-                    color++;
-                }
-                colors.set(node.key, color);
-                nb_colors = Math.max(nb_colors, color);
-            }
-        }
-
-        for (const node of nodes) {
-            updateNode(node.key, colors.get(node.key) === 0 ? 'lightblue' : `hsl(${360 * colors.get(node.key) / nb_colors}, 100%, 50%)`);
-        }
-
-        document.getElementById('mis_coloration').innerText = nb_colors;
-
-
-
-
-
-    }
 
     function _changeLayout() {
         const e = document.getElementById("layout");
@@ -1667,20 +1647,12 @@
     }
 
     (() => {
-        //console.log("jQuery ready");
-        // bob_alice();
-        // redraw();
-        // JAVA  DROPDOWN
-        // Document.ready(function () {
-        //     $('.dropdown-toggle').dropdown();
-        // });
 
         changeMode();
     })();
 
 
 
-    // Initialisation au chargement de la page
-    // window.addEventListener("DOMContentLoaded", init);
+
 </script>
 {% endblock %}

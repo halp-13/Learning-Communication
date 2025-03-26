@@ -176,7 +176,7 @@
                                             <th scope="row">Message length</th>
                                             <td>
                                                 <input type="number" name="message_length_n" id="message_length_n"
-                                                    value="10">
+                                                    value="1000">
                                             </td>
                                         </tr>
                                         <tr>
@@ -1297,7 +1297,8 @@
 
         }
         else if (config_proxy.mode == 'alice_n_bob') {
-            document.getElementById('nb_nodes').value = 10;
+            document.getElementById('nb_nodes').value = 30;
+            
             alice_n_bob();
             title.innerHTML = 'Alice-N-Bob';
             let box = document.getElementById('box_alice_n_bob');

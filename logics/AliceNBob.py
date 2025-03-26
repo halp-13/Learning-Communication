@@ -72,7 +72,7 @@ class Alice(Node):
     Version améliorée d'Alice qui utilise un modèle d'apprentissage
     pour prédire les bits des Bobs déconnectés.
     """
-    def __init__(self, p_one, buffer_size=20,model_type = "logistic"):
+    def __init__(self, p_one, buffer_size=20,model_type = "random_forest"):
         super().__init__("Alice", p_one, buffer_size)
         self.bob_history = {}
         if model_type == "logistic":
@@ -149,7 +149,7 @@ class Alice(Node):
             return self.guess_message()
 
 
-def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, disconnect_percentage=20, message_length=100, buffer_size=20, model_type="logistic"):
+def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, disconnect_percentage=20, message_length=100, buffer_size=20, model_type="random_forest"):
     """
     Lance une simulation améliorée avec plusieurs Bobs.
     """

@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-
+from sklearn.ensemble import RandomForestClassifier
 
 class Node:
     """
@@ -11,34 +11,25 @@ class Node:
     """
     def __init__(self, name, p_one, buffer_size=20):
         """
-        name: Nom du nœud (ex: 'Alice' ou 'Bob')
+        name: Nom du nœud (ex: 'Alice' ou 'Bob_1')
         p_one: Probabilité qu'un message envoyé par ce nœud soit un bit 1
-        buffer_size: Taille du buffer pour stocker les bits reçus
         """
         self.name = name
         self.p_one = p_one
-        self.buffer_size = buffer_size # Taille du buffer
-        self.is_disconnected = False  # Statut de déconnexion
-        self.received_bits = []       # Bits reçus de l'autre nœud
-        self.count_ones = 0          # Nombre de bits 1 reçus
-        self.count_total = 0         # Nombre total de bits reçus
+        self.buffer_size = buffer_size
+        self.is_disconnected = False
+        self.received_bits = []
+        self.count_ones = 0
+        self.count_total = 0
     
     def send_message(self):
-        """
-        Envoie un bit (0 ou 1) si le nœud n'est pas déconnecté.
-        Retourne None si le nœud est déconnecté.
-        """
         if self.is_disconnected:
             return None
-        # Choisit un bit = 1 avec probabilité p_one
         bit = 1 if random.random() < self.p_one else 0
         return bit
     
     def receive_message(self, bit):
-        """
-        Reçoit un bit et met à jour les statistiques.
-        Si le buffer est plein, retire le bit le plus ancien avant d'ajouter le nouveau bit.
-        """
+
         # Si le buffer est plein, on retire le bit le plus ancien
         if len(self.received_bits) >= self.buffer_size:
             oldest_bit = self.received_bits.pop(0) # Retire le bit le plus ancien
@@ -58,24 +49,39 @@ class Node:
         Retourne 0 par défaut si aucun bit n'a été reçu (count_total=0).
         """
         if self.count_total == 0:
-            return 0  # Pas de donnée statistique, on renvoie 0 par défaut.
+            return 0
         
         # Calcul de la probabilité d'obtenir un bit 1 sur le buffer size 
         # si le buffer est plein, sinon sur le nombre total de bits reçus.
-        prob_one = self.count_ones / self.buffer_size if self.count_total >= self.buffer_size else self.count_ones / self.count_total
-        bit_guess = 1 if random.random() < prob_one else 0
+        prob_guess_one = self.count_ones / self.buffer_size if self.count_total >= self.buffer_size else self.count_ones / self.count_total
+        bit_guess = 1 if random.random() < prob_guess_one else 0
         return bit_guess
-    
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "p_one": self.p_one,
+            "buffer_size": self.buffer_size,
+            "is_disconnected": self.is_disconnected,
+            "received_bits": self.received_bits,
+            "count_ones": self.count_ones,
+            "count_total": self.count_total
+        }
 
 class Alice(Node):
     """
     Version améliorée d'Alice qui utilise un modèle d'apprentissage
     pour prédire les bits des Bobs déconnectés.
     """
-    def __init__(self, p_one):
-        super().__init__("Alice", p_one)
+    def __init__(self, p_one, buffer_size=20,model_type = "random_forest"):
+        super().__init__("Alice", p_one, buffer_size)
         self.bob_history = {}
-        self.model = LogisticRegression(random_state=42)
+        if model_type == "logistic":
+            self.model = LogisticRegression(random_state=42, class_weight='balanced', max_iter=1000)
+        elif model_type == "random_forest":           
+            self.model = RandomForestClassifier(random_state=42, n_estimators=50)
+        else:
+            raise ValueError("model_type must be 'logistic' or 'random_forest'")
         self.is_model_trained = False
         self.training_data = []
         self.training_labels = []
@@ -86,11 +92,24 @@ class Alice(Node):
         if bob_id not in self.bob_history:
             self.bob_history[bob_id] = []
         
+        # Applique aussi la limitation de taille de buffer pour l'historique de chaque Bob
+        if len(self.bob_history[bob_id]) >= self.buffer_size:
+            self.bob_history[bob_id].pop(0)
+
         self.bob_history[bob_id].append(bit)
+        p_one_bob = sum(self.bob_history[bob_id]) / len(self.bob_history[bob_id])
         
-        features = [bob_id, len(self.bob_history[bob_id])]
+        # Crée les features pour l'entraînement du modèle
+        features = [bob_id, p_one_bob, len(self.bob_history[bob_id])]
+        
         self.training_data.append(features)
         self.training_labels.append(bit)
+        
+
+        # Limite aussi la taille des données d'entraînement pour garder les plus récentes
+        if len(self.training_data) > self.buffer_size :
+            self.training_data.pop(0)
+            self.training_labels.pop(0)
     
     def train_model(self):
         """
@@ -113,12 +132,15 @@ class Alice(Node):
         """
         Utilise le modèle entraîné pour prédire le bit d'un Bob déconnecté.
         """
-        if not self.is_model_trained:
+        # Si le modèle n'est pas encore entraîné ou si le Bob n'a pas d'historique de messages
+        if not self.is_model_trained or bob_id not in self.bob_history:
             return self.guess_message()
-        
-        bob_msg_count = len(self.bob_history.get(bob_id, []))
-        features = np.array([[bob_id, bob_msg_count]])
-        
+        # Crée les features pour la prédiction du bit du Bob
+        # en prenant en compte les derniers messages reçus par le Bob(limité par buffer_size)
+        recent_history = self.bob_history[bob_id][-self.buffer_size:]
+        p_one_bob = sum(recent_history) / len(recent_history)
+        features = np.array([[bob_id, p_one_bob, len(recent_history)]])
+        # Prédiction de la probabilité d'envoyer 1
         try:
             proba = self.model.predict_proba(features)[0][1]
             bit_prediction = 1 if random.random() < proba else 0

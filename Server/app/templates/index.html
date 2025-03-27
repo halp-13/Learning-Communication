@@ -943,6 +943,7 @@
         const edges = myDiagram.model.linkDataArray; // Liste des arêtes
         let connextions = [];
 
+
         for (const edge of edges) {
             let e = [parseInt(edge.from.split('-')[1]), parseInt(edge.to.split('-')[1])];
             let re = [parseInt(edge.to.split('-')[1]), parseInt(edge.from.split('-')[1])];
@@ -954,6 +955,7 @@
             connextions.push(e);
         }
 
+        var mis_f = []
 
 
         const reponse = await fetch('/mis/', {
@@ -979,10 +981,9 @@
 
             const chunk = decoder.decode(value, { stream: true });
             const lines = chunk.split('\n');
-
             for (const line of lines) {
                 if (line.trim() === '') continue; // Ignorer les lignes vides
-
+                
                 try {
                     // Parser la ligne en tant qu'objet JSON
                     if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
@@ -991,26 +992,39 @@
                         // Afficher dans l'interface utilisateur
                         // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
 
+                        for(let i=0; i <mis_f.length ; i++ ){
+                            let bob = mis_f[i];
+                            updateNode(bob, 'green');
 
+                        }
 
                         for (let i = 0; i < data.mis.length; i++) {
+                            
                             let bob = "Node-" + data.mis[i];
-                            updateNode(bob, 'red');
+                            if (mis_f.includes(bob))
+                                continue;
+                            mis_f.push(bob)
                         }
-                        // for(const [i, v] of Object.entries(data.remaining_nodes)){
-                        //     const id = "Node-" + v;
-                        //     if (v === 1){
-                        //         updateNode(id, 'white');
-                        //     }
-                        //     else{
-                        //         updateNode(id, 'black');
-                        //     }
-                        // }
+                        console.log();
+                        
+                        for(const [i, v] of Object.entries(data.messages)){
+                            const id = "Node-" + i;
+
+                            if (v === 1){
+                                updateNode(id, 'white');
+                            }
+                            else{
+                                updateNode(id, 'black');
+                            }
+                        }
 
 
                         console.log(data); // Afficher dans la console
                         // Afficher dans l'interface utilisateur
                         // document.getElementById('output').innerHTML += `<p>${data.message}</p>`;
+                        cpt++;
+                        document.getElementById('tours_mis').innerText = cpt;
+                        document.getElementById('mis_size').innerText = mis_f.length;
                     } else {
                         console.log(line);
                     }
@@ -1025,10 +1039,10 @@
         }
 
         // const mis = findMIS(myDiagram.model, nodes, edges);
-        // console.log("Maximal Independent Set (MIS):", mis);
+        console.log("Maximal Independent Set (MIS):", mis_f);
 
         // Mettre en évidence les nœuds du MIS dans le diagramme
-        updateNodes(mis, 'green');
+        updateNodes(mis_f, 'green');
         myDiagram.updateAllTargetBindings(); // Mettre à jour l'affichage
 
     }
@@ -1369,7 +1383,8 @@
                 key: `${Name}-${i + 1}`, // Clé unique pour chaque sommet
                 // loc: `${i * 100} 0`, // Position (x y) du sommet (peut être ignorée si un layout est utilisé)
                 color: options.vertexColor || "lightblue", // Couleur du sommet
-                p_one: Math.random(),
+                // p_one: Math.random(),
+                p_one:0.5,
                 id: i + 1
 
             };

@@ -241,7 +241,7 @@ def run_mis_gmnist_test(disconnect_percentage=0.6, num_epochs=15, num_samples_to
     model_filename = f"mis-gmodel-mnist-{int(disconnect_percentage * 100)}.pth"
 
     # Répertoire des résultats
-    results_folder = "misresults"
+    results_folder = "misgmnist-results"
     ensure_directory(results_folder)
     graph_folder = os.path.join(results_folder, "graph_visualizations")
     ensure_directory(graph_folder)

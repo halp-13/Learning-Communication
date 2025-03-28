@@ -226,7 +226,7 @@ def simulate_enhanced_communication(p_alice=0.5, p_bob=0.5, num_bobs=100, discon
             ones_in_would_send = sum(would_send) / min_length * 100
             ones_in_predictions = sum(predictions) / min_length * 100
             
-            #Cette partie du code permet d’afficher les détails pour chaque Bob.  
+            #Cette partie du code permet d’afficher les détails pour chaque Bob déconnecté. 
             #Étant donné le nombre élevé de Bobs (784), 
             #afin d’éviter un trop grand nombre d’affichages lors de l’exécution,  
             #nous avons mis ce bloc en commentaire.  

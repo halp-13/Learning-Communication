@@ -1,6 +1,40 @@
-# Remarque : 
-# Cette version du code, basée sur les données MNIST, n’a pas été utilisée dans la partie d’affichage graphique du projet. 
-# Pour la visualisation graphique, nous avons utilisé une autre version de l’algorithme MIS, spécifiquement adaptée à cette partie.
+# Remarque importante :
+# Ce code ainsi que son script de test n'ont pas été inclus dans le rapport ni dans la partie graphique
+# du projet, car ils n'ont pas été demandés par le client.
+# Après la mise en œuvre initiale, le client a également précisé que cette 
+# partie ne faisait pas partie des objectifs du projet.
+
+
+# Ce fichier concerne l'entraînement du modèle de reconstruction d'image à partir de graphes générés 
+# à partir des images MNIST.
+# Pour exécuter les tests et visualiser les résultats finaux, il faut lancer le script `testgmnist.py`.
+
+
+'''
+Description technique :
+Le script `testgmnist.py` vérifie d’abord si le modèle entraîné et les fichiers de 
+graphes prétraités existent. S'ils sont absents, il exécute automatiquement `misgmnist.py` 
+pour effectuer l'entraînement et générer les fichiers nécessaires.
+
+Chaque image du dataset MNIST est ensuite convertie en un graphe géométrique,où les connexions 
+entre pixels sont établies selon un nombre de voisins spécifié en paramètre d'entrée.
+
+Un scénario de défaillance (coupure) de nœuds est ensuite simulé aléatoirement,
+et l’algorithme MIS est appliqué uniquement aux nœuds actifs valeur 1 (c’est-à-dire pixels blancs).
+
+Les résultats finaux sont enregistrés dans le dossier `misgmnist-results`, 
+et pour chaque image testée, on obtient :
+1. L’image originale (Original)
+2. L’image après la coupure des nœuds (After Drop)
+3. L’image après l’application de MIS (After MIS)
+4. L’image reconstruite par le modèle (Reconstructed)
+
+En complément, deux visualisations de graphe sont générées pour chaque exemple,
+et enregistrées dans le sous-dossier `graph_visualizations` :
+- L’image de graphe après coupure des nœuds
+- L’image de graphe après l’application de MIS sur les pixels blancs uniquement
+'''
+
 import numpy as np
 import torch
 import torch.nn as nn
